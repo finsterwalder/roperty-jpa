@@ -1,5 +1,7 @@
 package com.parship.roperty.persistence;
 
+import org.apache.commons.lang3.Validate;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -18,6 +20,7 @@ public class RopertyKey {
     }
 
     public void setId(String id) {
+        Validate.notBlank(id, "id must not be null or blank");
         this.id = id;
     }
 
