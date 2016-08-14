@@ -8,24 +8,44 @@ import com.parship.roperty.RopertyImpl;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class H2IntegrationTest {
+@RunWith(Parameterized.class)
+public class DatabaseIntegrationTest {
 
     private DatabasePersistence databasePersistence = new DatabasePersistence();
     private Roperty roperty;
     private MapBackedDomainResolver resolver;
+    private String persistenceUnitName;
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> parameters() {
+        Object[][] parameters = {
+                { "hsqldb" },
+                { "h2" }
+                // , { "postgresql" }
+        };
+        return Arrays.asList(parameters);
+    }
+
+    public DatabaseIntegrationTest(String persistenceUnitName) {
+        this.persistenceUnitName = persistenceUnitName;
+    }
 
     @Before
     public void initializeRelationPersistence() {
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("com.parship.roperty.persistence");
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
 
         TransactionManager transactionManager = new TransactionManager();
         transactionManager.setEntityManagerFactory(entityManagerFactory);

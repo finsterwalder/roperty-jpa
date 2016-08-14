@@ -2,7 +2,7 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
-    <persistence-unit name="com.parship.roperty.persistence">
+    <persistence-unit name="h2">
         <class>com.parship.roperty.persistence.RopertyKey</class>
         <class>com.parship.roperty.persistence.RopertyValue</class>
         <properties>
@@ -10,7 +10,30 @@
             <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:roperty_test" />
             <property name="javax.persistence.jdbc.user" value="sa" />
             <property name="javax.persistence.jdbc.password" value="" />
-
+            <property name="hibernate.show_sql" value="true" />
+            <property name="hibernate.hbm2ddl.auto" value="create" />
+        </properties>
+    </persistence-unit>
+    <persistence-unit name="hsqldb">
+        <class>com.parship.roperty.persistence.RopertyKey</class>
+        <class>com.parship.roperty.persistence.RopertyValue</class>
+        <properties>
+            <property name="javax.persistence.jdbc.driver" value="org.hsqldb.jdbc.JDBCDriver" />
+            <property name="javax.persistence.jdbc.url" value="jdbc:hsqldb:mem:roperty_test" />
+            <property name="javax.persistence.jdbc.user" value="sa" />
+            <property name="javax.persistence.jdbc.password" value="" />
+            <property name="hibernate.show_sql" value="true" />
+            <property name="hibernate.hbm2ddl.auto" value="create" />
+        </properties>
+    </persistence-unit>
+    <persistence-unit name="postgresql">
+        <class>com.parship.roperty.persistence.RopertyKey</class>
+        <class>com.parship.roperty.persistence.RopertyValue</class>
+        <properties>
+            <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
+            <property name="javax.persistence.jdbc.url" value="jdbc:postgresql:roperty_test" />
+            <property name="javax.persistence.jdbc.user" value="postgres" />
+            <property name="javax.persistence.jdbc.password" value="postgres" />
             <property name="hibernate.show_sql" value="true" />
             <property name="hibernate.hbm2ddl.auto" value="create" />
         </properties>
