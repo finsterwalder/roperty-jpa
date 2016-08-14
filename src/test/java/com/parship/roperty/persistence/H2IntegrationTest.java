@@ -7,7 +7,6 @@ import com.parship.roperty.Roperty;
 import com.parship.roperty.RopertyImpl;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.persistence.EntityManagerFactory;
@@ -18,10 +17,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-@Ignore
 public class H2IntegrationTest {
 
-    private RelationalPersistence relationalPersistence = new RelationalPersistence();
+    private DatabasePersistence databasePersistence = new DatabasePersistence();
     private Roperty roperty;
     private MapBackedDomainResolver resolver;
 
@@ -29,20 +27,28 @@ public class H2IntegrationTest {
     public void initializeRelationPersistence() {
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("com.parship.roperty.persistence");
 
-        RelationalTransactionManager transactionManager = new RelationalTransactionManager();
+        TransactionManager transactionManager = new TransactionManager();
         transactionManager.setEntityManagerFactory(entityManagerFactory);
 
+        QueryBuilderDelegate<RopertyKey> keyQueryBuilderDelegate = new QueryBuilderDelegate<>();
+        keyQueryBuilderDelegate.setEntityManagerFactory(entityManagerFactory);
+        keyQueryBuilderDelegate.setQueryBuilder(new QueryBuilder<RopertyKey>());
+        keyQueryBuilderDelegate.setResultClass(RopertyKey.class);
         RopertyKeyDAO ropertyKeyDAO = new RopertyKeyDAO();
-        ropertyKeyDAO.setEntityManagerFactory(entityManagerFactory);
+        ropertyKeyDAO.setQueryBuilderDelegate(keyQueryBuilderDelegate);
 
+        QueryBuilderDelegate<RopertyValue> valueQueryBuilderDelegate = new QueryBuilderDelegate<>();
+        valueQueryBuilderDelegate.setEntityManagerFactory(entityManagerFactory);
+        valueQueryBuilderDelegate.setQueryBuilder(new QueryBuilder<RopertyValue>());
+        valueQueryBuilderDelegate.setResultClass(RopertyValue.class);
         RopertyValueDAO ropertyValueDAO = new RopertyValueDAO();
-        ropertyValueDAO.setEntityManagerFactory(entityManagerFactory);
+        ropertyValueDAO.setQueryBuilderDelegate(valueQueryBuilderDelegate);
 
-        relationalPersistence.setTransactionManager(transactionManager);
-        relationalPersistence.setRopertyKeyDAO(ropertyKeyDAO);
-        relationalPersistence.setRopertyValueDAO(ropertyValueDAO);
+        databasePersistence.setTransactionManager(transactionManager);
+        databasePersistence.setRopertyKeyDAO(ropertyKeyDAO);
+        databasePersistence.setRopertyValueDAO(ropertyValueDAO);
 
-        roperty = new RopertyImpl(relationalPersistence, "domain1", "domain2");
+        roperty = new RopertyImpl(databasePersistence, "domain1", "domain2");
         resolver = new MapBackedDomainResolver()
                 .set("domain1", "domainValue1")
                 .set("domain2", "domainValue2");

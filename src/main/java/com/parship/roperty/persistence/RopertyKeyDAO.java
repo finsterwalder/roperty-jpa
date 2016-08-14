@@ -1,26 +1,34 @@
 package com.parship.roperty.persistence;
 
+import org.apache.commons.lang3.Validate;
+
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
+import java.util.Collections;
 import java.util.List;
 
 public class RopertyKeyDAO {
 
-    private EntityManagerFactory entityManagerFactory;
+    private QueryBuilderDelegate<RopertyKey> queryBuilderDelegate;
 
     public RopertyKey loadRopertyKey(String key) {
+        Validate.notNull(queryBuilderDelegate, "Query builder delegate must not be null");
         EqualsCriterion<String> equalsCriterion = new EqualsCriterion<String>()
                 .withAttributeName("id")
                 .withComparison(key);
 
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        TypedQuery<RopertyKey> typedQuery = new QueryBuilder<RopertyKey>()
-                .withResultClass(RopertyKey.class)
-                .withEntityManager(entityManager)
-                .equality(equalsCriterion);
+        EntityManager entityManager = queryBuilderDelegate.createEntityManager();
+        Validate.notNull(entityManager, "Entity manager must not be null");
+        TypedQuery<RopertyKey> typedQuery = queryBuilderDelegate.equality(equalsCriterion);
+        if (typedQuery == null) {
+            entityManager.close();
+            throw new RopertyPersistenceException(String.format("Typed query for equality of key '%s' must not be null", key));
+        }
 
         List<RopertyKey> ropertyKeys = typedQuery.getResultList();
+
+        Validate.notNull(ropertyKeys, "Result list of Roperty keys for identifier '%s' was null", key);
+
         int numResults = ropertyKeys.size();
 
         RopertyKey ropertyKey;
@@ -28,7 +36,9 @@ public class RopertyKeyDAO {
             ropertyKey = null;
         } else if (numResults == 1) {
             ropertyKey = ropertyKeys.get(0);
+            entityManager.detach(ropertyKey);
         } else {
+            entityManager.close();
             throw new RopertyPersistenceException("More than one Roperty key was found in database.");
         }
 
@@ -36,18 +46,24 @@ public class RopertyKeyDAO {
         return ropertyKey;
     }
 
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
-        this.entityManagerFactory = entityManagerFactory;
-    }
-
     public List<RopertyKey> loadAllRopertyKeys() {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        TypedQuery<RopertyKey> typedQuery = new QueryBuilder<RopertyKey>()
-                .withEntityManager(entityManager)
-                .withResultClass(RopertyKey.class)
-                .all();
+        Validate.notNull(queryBuilderDelegate, "Query builder delegate must not be null");
+        EntityManager entityManager = queryBuilderDelegate.createEntityManager();
+        Validate.notNull(entityManager, "Entity manager must not be null");
+        TypedQuery<RopertyKey> typedQuery = queryBuilderDelegate.all();
+
+        if (typedQuery == null) {
+            entityManager.close();
+            throw new RopertyPersistenceException("Typed query must not be null");
+        }
+
         List<RopertyKey> ropertyKeys = typedQuery.getResultList();
         entityManager.close();
-        return ropertyKeys;
+        return Collections.unmodifiableList(ropertyKeys);
+    }
+
+    public void setQueryBuilderDelegate(QueryBuilderDelegate queryBuilderDelegate) {
+        Validate.notNull(queryBuilderDelegate, "Query builder delegate must not be null");
+        this.queryBuilderDelegate = queryBuilderDelegate;
     }
 }

@@ -5,21 +5,25 @@ import com.parship.roperty.DomainSpecificValueFactory;
 import com.parship.roperty.KeyValues;
 import com.parship.roperty.KeyValuesFactory;
 import com.parship.roperty.Persistence;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class RelationalPersistence implements Persistence {
+public class DatabasePersistence implements Persistence {
 
     private RopertyKeyDAO ropertyKeyDAO;
 
     private RopertyValueDAO ropertyValueDAO;
 
-    private RelationalTransactionManager transactionManager;
+    private TransactionManager transactionManager;
 
     @Override
     public KeyValues load(String key, KeyValuesFactory keyValuesFactory, DomainSpecificValueFactory domainSpecificValueFactory) {
@@ -73,7 +77,9 @@ public class RelationalPersistence implements Persistence {
 
         for (String key : keyValuesMap.keySet()) {
             KeyValues keyValues = load(key, keyValuesFactory, domainSpecificValueFactory);
-            result.put(key, keyValues);
+            if (keyValues != null) {
+                result.put(key, keyValues);
+            }
         }
 
         return result;
@@ -83,24 +89,50 @@ public class RelationalPersistence implements Persistence {
     public void store(String key, KeyValues keyValues, String changeSet) {
         Validate.notBlank(key, "Key must not be empty");
         Validate.notNull(keyValues, "Key values must not be null");
+        Validate.notNull(transactionManager, "Transaction manager must no be null");
 
         transactionManager.begin();
 
         RopertyKey ropertyKey = ropertyKeyDAO.loadRopertyKey(key);
+        String description = keyValues.getDescription();
         if (ropertyKey == null) {
             ropertyKey = new RopertyKey();
             ropertyKey.setId(key);
-            ropertyKey.setDescription(keyValues.getDescription());
+            ropertyKey.setDescription(description);
             transactionManager.persist(ropertyKey);
         }
 
         Set<DomainSpecificValue> domainSpecificValues = keyValues.getDomainSpecificValues();
+        if (domainSpecificValues == null) {
+            transactionManager.end();
+            throw new RopertyPersistenceException(String.format("Domain specific values were null for key values with description '%s'", description));
+        }
+        if (domainSpecificValues.isEmpty()) {
+            transactionManager.end();
+            throw new RopertyPersistenceException(String.format("Domain specific values were empty for key values with description '%s'", description));
+        }
+
         for (DomainSpecificValue domainSpecificValue : domainSpecificValues) {
             RopertyValue ropertyValue = new RopertyValue();
             ropertyValue.setKey(ropertyKey);
-            ropertyValue.setValue((Serializable) domainSpecificValue.getValue());
+            Object rawValue = domainSpecificValue.getValue();
+            if (rawValue == null) {
+                transactionManager.end();
+                throw new RopertyPersistenceException(String.format("Value for key '%s' must not be null", key));
+            }
+            if (!Serializable.class.isAssignableFrom(rawValue.getClass())) {
+                transactionManager.end();
+                throw new RopertyPersistenceException(String.format("Value '%s' doesn't implement the serializable interface and is therefore not serializable", rawValue));
+            }
+            Serializable value = (Serializable) rawValue;
+            ropertyValue.setValue(value);
             ropertyValue.setChangeSet(changeSet);
-            ropertyValue.setPattern(domainSpecificValue.getPatternStr());
+            String patternStr = domainSpecificValue.getPatternStr();
+            if (StringUtils.isBlank(patternStr)) {
+                transactionManager.end();
+                throw new RopertyPersistenceException(String.format("Pattern for key '%s' and value '%s' must not be blank", key, value));
+            }
+            ropertyValue.setPattern(patternStr);
             transactionManager.persist(ropertyValue);
         }
 
@@ -112,30 +144,37 @@ public class RelationalPersistence implements Persistence {
         Validate.notBlank(key, "Key must not be empty");
         Validate.notNull(keyValues, "Key values must not be null");
 
+        transactionManager.begin();
+
         RopertyKey ropertyKey = ropertyKeyDAO.loadRopertyKey(key);
         if (ropertyKey == null) {
+            transactionManager.end();
             return;
         }
 
-        List<RopertyValue> ropertyValues = ropertyValueDAO.loadRopertyValues(ropertyKey);
+        List<RopertyValue> ropertyValues = new LinkedList<>(ropertyValueDAO.loadRopertyValues(ropertyKey));
         if (ropertyValues.isEmpty()) {
-            return;
+            transactionManager.end();
+            throw new RopertyPersistenceException(String.format("Could not find any values for key '%s'. This is an inconsistency that should not happen.", key));
         }
 
-        Set<DomainSpecificValue> domainSpecificValues = keyValues.getDomainSpecificValues();
+        Set<DomainSpecificValue> domainSpecificValues = new HashSet<>(keyValues.getDomainSpecificValues());
         int numDomainSpecificValues = domainSpecificValues.size();
         if (numDomainSpecificValues == 0) {
-            return;
+            transactionManager.end();
+            throw new RopertyPersistenceException(String.format("Key values for key '%s' must contain domain specific values", key));
         }
 
         int numRemovedValues = 0;
 
-        transactionManager.begin();
-
-        for (DomainSpecificValue domainSpecificValue : domainSpecificValues) {
-            for (RopertyValue ropertyValue : ropertyValues) {
+        for (Iterator<DomainSpecificValue> itDomainSpecificValue = domainSpecificValues.iterator(); itDomainSpecificValue.hasNext(); ) {
+            DomainSpecificValue domainSpecificValue = itDomainSpecificValue.next();
+            for (Iterator<RopertyValue> itRopertyValue = ropertyValues.iterator(); itRopertyValue.hasNext(); ) {
+                RopertyValue ropertyValue = itRopertyValue.next();
                 if (ropertyValue.equals(domainSpecificValue)) {
                     transactionManager.remove(ropertyValue);
+                    itRopertyValue.remove();
+                    itDomainSpecificValue.remove();
                     numRemovedValues++;
                 }
             }
@@ -153,22 +192,41 @@ public class RelationalPersistence implements Persistence {
         Validate.notBlank(key, "Key must not be empty");
         Validate.notNull(domainSpecificValue, "Domain specific value must not be null");
 
+        transactionManager.begin();
+
         RopertyKey ropertyKey = ropertyKeyDAO.loadRopertyKey(key);
         if (ropertyKey == null) {
+            transactionManager.end();
             return;
         }
 
-        RopertyValue ropertyValue = ropertyValueDAO.loadRopertyValue(ropertyKey, domainSpecificValue.getPatternStr(), domainSpecificValue.getValue());
+        String patternStr = domainSpecificValue.getPatternStr();
+        if (StringUtils.isBlank(patternStr)) {
+            transactionManager.end();
+            throw new RopertyPersistenceException(String.format("Pattern of domain specific value for key '%s' should not be blank", key));
+        }
+
+        Object value = domainSpecificValue.getValue();
+        if (value == null) {
+            transactionManager.end();
+            throw new RopertyPersistenceException(String.format("Value for key '%s' must not be null", key));
+        }
+        if (!Serializable.class.isAssignableFrom(value.getClass())) {
+            transactionManager.end();
+            throw new RopertyPersistenceException(String.format("Domain specific value '%s' for key '%s' must be serializable", value, key));
+        }
+
+        RopertyValue ropertyValue = ropertyValueDAO.loadRopertyValue(ropertyKey, patternStr, value);
         if (ropertyValue == null) {
+            transactionManager.end();
             return;
         }
 
-        transactionManager.begin();
         transactionManager.remove(ropertyValue);
         transactionManager.end();
     }
 
-    public void setTransactionManager(RelationalTransactionManager transactionManager) {
+    public void setTransactionManager(TransactionManager transactionManager) {
         Validate.notNull(transactionManager, "Transaction manager must not be null");
         this.transactionManager = transactionManager;
     }

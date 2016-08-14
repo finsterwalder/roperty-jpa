@@ -71,6 +71,7 @@ public class QueryBuilderTest {
         when(metamodel.entity(Long.class)).thenReturn(entityType);
         when(criteriaQuery.from(entityType)).thenReturn(root);
         when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
+        queryBuilder.withEntityManager(entityManager);
     }
 
     @Test

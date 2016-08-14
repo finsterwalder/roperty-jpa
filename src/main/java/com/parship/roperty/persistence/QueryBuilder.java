@@ -47,6 +47,7 @@ public class QueryBuilder<X> {
 
     public TypedQuery<X> all() {
         Validate.notNull(entityManager, "Entity manager must not be null");
+        Validate.notNull(resultClass, "Result class must not be null");
 
         Metamodel metamodel = entityManager.getMetamodel();
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
