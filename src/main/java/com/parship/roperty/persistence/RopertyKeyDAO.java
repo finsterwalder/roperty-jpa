@@ -19,29 +19,7 @@ public class RopertyKeyDAO {
 
         EntityManager entityManager = queryBuilderDelegate.createEntityManager();
         Validate.notNull(entityManager, "Entity manager must not be null");
-        TypedQuery<RopertyKey> typedQuery = queryBuilderDelegate.equality(equalsCriterion);
-        if (typedQuery == null) {
-            entityManager.close();
-            throw new RopertyPersistenceException(String.format("Typed query for equality of key '%s' must not be null", key));
-        }
-
-        List<RopertyKey> ropertyKeys = typedQuery.getResultList();
-
-        Validate.notNull(ropertyKeys, "Result list of Roperty keys for identifier '%s' was null", key);
-
-        int numResults = ropertyKeys.size();
-
-        RopertyKey ropertyKey;
-        if (numResults == 0) {
-            ropertyKey = null;
-        } else if (numResults == 1) {
-            ropertyKey = ropertyKeys.get(0);
-            entityManager.detach(ropertyKey);
-        } else {
-            entityManager.close();
-            throw new RopertyPersistenceException("More than one Roperty key was found in database.");
-        }
-
+        RopertyKey ropertyKey = entityManager.find(RopertyKey.class, key);
         entityManager.close();
         return ropertyKey;
     }

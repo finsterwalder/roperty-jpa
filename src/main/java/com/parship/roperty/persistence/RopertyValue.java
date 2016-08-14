@@ -14,7 +14,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
-@Table(name = "roperty_value", indexes = {@Index(columnList = "key"), @Index(columnList = "key, pattern, value", unique=true)})
+@Table(name = "roperty_value", indexes = {@Index(columnList = "key"), @Index(columnList = "key, pattern", unique=true)})
 public class RopertyValue {
 
     @Id
@@ -25,7 +25,7 @@ public class RopertyValue {
     @JoinColumn(name = "key")
     private RopertyKey key;
 
-    @Column(name = "value", nullable = false)
+    @Column(name = "value")
     private Serializable value;
 
     @Column(name = "change_set")
@@ -71,5 +71,16 @@ public class RopertyValue {
                 && Objects.equals(domainSpecificValue.getValue(), value);
     }
 
+    public Long getId() {
+        return id;
+    }
 
+    @Override
+    public String toString() {
+        return "RopertyValue{" +
+                "key=" + key +
+                ", changeSet='" + changeSet + '\'' +
+                ", pattern='" + pattern + '\'' +
+                '}';
+    }
 }

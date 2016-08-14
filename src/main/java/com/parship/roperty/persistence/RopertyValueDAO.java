@@ -33,7 +33,7 @@ public class RopertyValueDAO {
         return Collections.unmodifiableList(ropertyValues);
     }
 
-    public RopertyValue loadRopertyValue(RopertyKey ropertyKey, String pattern, Object value) {
+    public RopertyValue loadRopertyValue(RopertyKey ropertyKey, String pattern) {
         Validate.notNull(queryBuilderDelegate, "Query builder delegate must not be null");
         EntityManager entityManager = queryBuilderDelegate.createEntityManager();
         Validate.notNull(entityManager, "Entity manager must not be null");
@@ -46,20 +46,23 @@ public class RopertyValueDAO {
                 .withAttributeName("pattern")
                 .withComparison(pattern);
 
-        EqualsCriterion<Object> valueCriterion = new EqualsCriterion<>()
-                .withAttributeName("value")
-                .withComparison(value);
-
-        TypedQuery<RopertyValue> typedQuery = queryBuilderDelegate.equality(keyCriterion, patternCriterion, valueCriterion);
+        TypedQuery<RopertyValue> typedQuery = queryBuilderDelegate.equality(keyCriterion, patternCriterion);
         if (typedQuery == null) {
             entityManager.close();
             throw new RopertyPersistenceException(String.format("Typed query for equality of key '%s' must not be null", ropertyKey.getId()));
         }
 
-        RopertyValue ropertyValue = typedQuery.getSingleResult();
-        if (ropertyValue != null) {
-            entityManager.detach(ropertyValue);
+        List<RopertyValue> ropertyValues = typedQuery.getResultList();
+        int numValues = ropertyValues.size();
+        RopertyValue ropertyValue;
+        if (numValues == 0) {
+            ropertyValue = null;
+        } else if (numValues == 1) {
+            ropertyValue = ropertyValues.get(0);
+        } else {
+            throw new RopertyPersistenceException(String.format("More than one database entry found for key '%s' and pattern '%s'", ropertyKey, pattern));
         }
+
         entityManager.close();
 
         return ropertyValue;

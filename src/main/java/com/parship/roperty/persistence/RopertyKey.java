@@ -31,4 +31,12 @@ public class RopertyKey {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    @Override
+    public String toString() {
+        return "RopertyKey{" +
+                "id='" + id + '\'' +
+                ", description='" + description + '\'' +
+                '}';
+    }
 }

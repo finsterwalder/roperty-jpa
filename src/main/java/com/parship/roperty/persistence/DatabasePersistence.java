@@ -5,7 +5,6 @@ import com.parship.roperty.DomainSpecificValueFactory;
 import com.parship.roperty.KeyValues;
 import com.parship.roperty.KeyValuesFactory;
 import com.parship.roperty.Persistence;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.Serializable;
@@ -15,6 +14,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class DatabasePersistence implements Persistence {
@@ -113,27 +113,48 @@ public class DatabasePersistence implements Persistence {
         }
 
         for (DomainSpecificValue domainSpecificValue : domainSpecificValues) {
-            RopertyValue ropertyValue = new RopertyValue();
-            ropertyValue.setKey(ropertyKey);
+
             Object rawValue = domainSpecificValue.getValue();
-            if (rawValue == null) {
-                transactionManager.end();
-                throw new RopertyPersistenceException(String.format("Value for key '%s' must not be null", key));
-            }
-            if (!Serializable.class.isAssignableFrom(rawValue.getClass())) {
-                transactionManager.end();
-                throw new RopertyPersistenceException(String.format("Value '%s' doesn't implement the serializable interface and is therefore not serializable", rawValue));
-            }
-            Serializable value = (Serializable) rawValue;
-            ropertyValue.setValue(value);
-            ropertyValue.setChangeSet(changeSet);
             String patternStr = domainSpecificValue.getPatternStr();
-            if (StringUtils.isBlank(patternStr)) {
+            if (patternStr == null) {
                 transactionManager.end();
-                throw new RopertyPersistenceException(String.format("Pattern for key '%s' and value '%s' must not be blank", key, value));
+                throw new RopertyPersistenceException(String.format("Pattern for key '%s' must not be null", key));
             }
-            ropertyValue.setPattern(patternStr);
-            transactionManager.persist(ropertyValue);
+            RopertyValue ropertyValue = ropertyValueDAO.loadRopertyValue(ropertyKey, patternStr);
+            if (ropertyValue == null) {
+                ropertyValue = new RopertyValue();
+                ropertyValue.setKey(ropertyKey);
+                if (rawValue != null && Serializable.class.isAssignableFrom(rawValue.getClass())) {
+                    Serializable value = (Serializable) rawValue;
+                    ropertyValue.setValue(value);
+                } else {
+                    throw new RopertyPersistenceException(String.format("Cannot serialize value '%s'", rawValue));
+                }
+                ropertyValue.setPattern(patternStr);
+                ropertyValue.setChangeSet(changeSet);
+                transactionManager.persist(ropertyValue);
+            } else {
+                boolean merge = false;
+                if (!Objects.equals(ropertyValue.getChangeSet(), changeSet)) {
+                    ropertyValue.setChangeSet(changeSet);
+                    merge = true;
+                }
+                if (!Objects.equals(ropertyValue.getValue(), rawValue)) {
+                    if (rawValue == null) {
+                        ropertyValue.setValue(null);
+                        merge = true;
+                    } else if (Serializable.class.isAssignableFrom(rawValue.getClass())) {
+                        Serializable value = (Serializable) rawValue;
+                        ropertyValue.setValue(value);
+                        merge = true;
+                    } else {
+                        throw new RopertyPersistenceException(String.format("Cannot serialize value '%s'", rawValue));
+                    }
+                }
+                if (merge) {
+                    transactionManager.merge(ropertyValue);
+                }
+            }
         }
 
         transactionManager.end();
@@ -201,10 +222,6 @@ public class DatabasePersistence implements Persistence {
         }
 
         String patternStr = domainSpecificValue.getPatternStr();
-        if (StringUtils.isBlank(patternStr)) {
-            transactionManager.end();
-            throw new RopertyPersistenceException(String.format("Pattern of domain specific value for key '%s' should not be blank", key));
-        }
 
         Object value = domainSpecificValue.getValue();
         if (value == null) {
@@ -216,7 +233,7 @@ public class DatabasePersistence implements Persistence {
             throw new RopertyPersistenceException(String.format("Domain specific value '%s' for key '%s' must be serializable", value, key));
         }
 
-        RopertyValue ropertyValue = ropertyValueDAO.loadRopertyValue(ropertyKey, patternStr, value);
+        RopertyValue ropertyValue = ropertyValueDAO.loadRopertyValue(ropertyKey, patternStr);
         if (ropertyValue == null) {
             transactionManager.end();
             return;

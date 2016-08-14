@@ -63,6 +63,9 @@ public class QueryBuilderTest {
     @Mock
     private TypedQuery<Long> typedQuery;
 
+    @Mock
+    private Predicate predicate;
+
     @Before
     public void prepareMocks() {
         when(entityManager.getMetamodel()).thenReturn(metamodel);
@@ -81,6 +84,7 @@ public class QueryBuilderTest {
         when(equalsCriterion.getComparison()).thenReturn(1L);
         when(entityType.getSingularAttribute("attributeName")).thenReturn(singularAttribute);
         when(criteriaBuilder.equal(path, 1L)).thenReturn(restriction);
+        when(criteriaBuilder.and(restriction)).thenReturn(predicate);
         when(root.get(singularAttribute)).thenReturn(path);
 
         TypedQuery<Long> typedQuery = queryBuilder.equality(equalsCriterion);
@@ -90,7 +94,7 @@ public class QueryBuilderTest {
         verify(root).get(singularAttribute);
         verify(equalsCriterion, times(2)).getComparison();
         verify(criteriaBuilder).equal(path, 1L);
-        verify(criteriaQuery).where(restriction);
+        verify(criteriaQuery).where(predicate);
         verifyMocks();
         assertThat(typedQuery, is(this.typedQuery));
     }

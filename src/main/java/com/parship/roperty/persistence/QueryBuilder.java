@@ -34,14 +34,18 @@ public class QueryBuilder<X> {
         CriteriaQuery<X> query = criteriaBuilder.createQuery(resultClass);
         EntityType<X> entityType = metamodel.entity(resultClass);
         Root<X> root = query.from(entityType);
-        for (EqualsCriterion<Y> equalsCriterion : equalsCriteria) {
+        int numRestrictions = equalsCriteria.length;
+        Predicate[] restrictions = new Predicate[numRestrictions];
+        for (int i = 0; i < numRestrictions; i++) {
+            EqualsCriterion<Y> equalsCriterion = equalsCriteria[i];
             String attributeName = equalsCriterion.getAttributeName();
             SingularAttribute<? super X, ?> singularAttribute = entityType.getSingularAttribute(attributeName);
             Path<?> path = root.get(singularAttribute);
             Y comparison = equalsCriterion.getComparison();
             Predicate restriction = criteriaBuilder.equal(path, comparison);
-            query.where(restriction);
+            restrictions[i] = restriction;
         }
+        query.where(criteriaBuilder.and(restrictions));
         return entityManager.createQuery(query);
     }
 

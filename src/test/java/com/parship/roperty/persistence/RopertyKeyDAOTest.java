@@ -17,8 +17,6 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,23 +40,14 @@ public class RopertyKeyDAOTest {
     @Mock
     private RopertyKey ropertyKey;
 
-    @Test(expected = RopertyPersistenceException.class)
-    public void failIfTypedQueryIsNullOnLoadingSingleRopertyKey() {
-        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
-
-        ropertyKeyDAO.loadRopertyKey(KEY);
-    }
-
     @Test
     public void nonExistingRopertyKeyShouldReturnNull() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
-        when(queryBuilderDelegate.equality(any(EqualsCriterion.class))).thenReturn(typedQuery);
 
         RopertyKey result = ropertyKeyDAO.loadRopertyKey(KEY);
 
         verify(queryBuilderDelegate).createEntityManager();
-        verify(queryBuilderDelegate).equality(any(EqualsCriterion.class));
-        verify(typedQuery).getResultList();
+        verify(entityManager).find(RopertyKey.class, KEY);
         verify(entityManager).close();
         assertThat(result, nullValue());
 
@@ -68,29 +57,15 @@ public class RopertyKeyDAOTest {
     @Test
     public void existingRopertyKeyShouldBeReturned() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
-        when(queryBuilderDelegate.equality(any(EqualsCriterion.class))).thenReturn(typedQuery);
-        when(typedQuery.getResultList()).thenReturn(Arrays.asList(ropertyKey));
+        when(entityManager.find(RopertyKey.class, KEY)).thenReturn(ropertyKey);
 
         RopertyKey result = ropertyKeyDAO.loadRopertyKey(KEY);
 
         verify(queryBuilderDelegate).createEntityManager();
-        verify(queryBuilderDelegate).equality(any(EqualsCriterion.class));
-        verify(typedQuery).getResultList();
-        verify(entityManager).detach(ropertyKey);
+        verify(entityManager).find(RopertyKey.class, KEY);
         verify(entityManager).close();
         assertThat(result, is(ropertyKey));
     }
-
-    @Test(expected = RopertyPersistenceException.class)
-    public void failIfMoreThanOneKeyFound() {
-        RopertyKey ropertyKey2 = mock(RopertyKey.class);
-        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
-        when(queryBuilderDelegate.equality(any(EqualsCriterion.class))).thenReturn(typedQuery);
-        when(typedQuery.getResultList()).thenReturn(Arrays.asList(ropertyKey, ropertyKey2));
-
-        ropertyKeyDAO.loadRopertyKey(KEY);
-    }
-
 
     @Test(expected = NullPointerException.class)
     public void failIfMissingEntityManager() {

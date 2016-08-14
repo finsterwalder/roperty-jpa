@@ -383,7 +383,7 @@ public class DatabasePersistenceTest {
         databasePersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
 
         verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN, value);
+        verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN);
         verify(transactionManager).begin();
         verify(transactionManager).end();
         verify(domainSpecificValue).getPatternStr();
@@ -395,12 +395,12 @@ public class DatabasePersistenceTest {
         when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
         when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
         when(domainSpecificValue.getValue()).thenReturn(value);
-        when(ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, value)).thenReturn(ropertyValue);
+        when(ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN)).thenReturn(ropertyValue);
 
         databasePersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
 
         verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN, value);
+        verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN);
         verify(transactionManager).begin();
         verify(transactionManager).remove(ropertyValue);
         verify(transactionManager).end();
