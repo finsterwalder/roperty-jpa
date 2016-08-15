@@ -5,10 +5,10 @@
     </prerequisites>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.parship</groupId>
-    <artifactId>roperty-persistence</artifactId>
+    <artifactId>roperty-jpa</artifactId>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>Roperty Persistence</name>
+    <name>Roperty JPA</name>
     <description>Persistence implementation for Roperty</description>
     <url>http://www.parshipelite.com</url>
     <licenses>
