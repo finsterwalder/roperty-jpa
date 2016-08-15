@@ -42,6 +42,8 @@ public class JpaPersistence implements Persistence {
 
     private KeyValues load(RopertyKey ropertyKey, KeyValuesFactory keyValuesFactory, DomainSpecificValueFactory domainSpecificValueFactory) {
         Validate.notNull(ropertyKey, "Roperty key must not be null");
+        Validate.notNull(keyValuesFactory, "Key values factory must no be null");
+        Validate.notNull(domainSpecificValueFactory, "Domain specific value factory must not be null");
 
         List<RopertyValue> ropertyValues = ropertyValueDAO.loadRopertyValues(ropertyKey);
         Validate.notEmpty(ropertyValues, "Could not find any values for key '%s'", ropertyKey.getId());
