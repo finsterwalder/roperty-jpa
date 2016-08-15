@@ -5,6 +5,7 @@ import com.parship.roperty.DomainSpecificValueFactory;
 import com.parship.roperty.KeyValues;
 import com.parship.roperty.KeyValuesFactory;
 import com.parship.roperty.Persistence;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.Serializable;
@@ -131,12 +132,12 @@ public class JpaPersistence implements Persistence {
                     throw new RopertyPersistenceException(String.format("Cannot serialize value '%s'", rawValue));
                 }
                 ropertyValue.setPattern(patternStr);
-                ropertyValue.setChangeSet(changeSet);
+                ropertyValue.setChangeSet(nullWhenEmpty(changeSet));
                 transactionManager.persist(ropertyValue);
             } else {
                 boolean merge = false;
                 if (!Objects.equals(ropertyValue.getChangeSet(), changeSet)) {
-                    ropertyValue.setChangeSet(changeSet);
+                    ropertyValue.setChangeSet(nullWhenEmpty(changeSet));
                     merge = true;
                 }
                 if (!Objects.equals(ropertyValue.getValue(), rawValue)) {
@@ -158,6 +159,14 @@ public class JpaPersistence implements Persistence {
         }
 
         transactionManager.end();
+    }
+
+    private static String nullWhenEmpty(String changeSet) {
+        if (StringUtils.isEmpty(changeSet)) {
+            return null;
+        }
+
+        return changeSet;
     }
 
     @Override

@@ -23,9 +23,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -40,9 +40,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(Parameterized.class)
-public class DatabaseIntegrationTest {
+public class JpaIntegrationTest {
 
-    private DatabasePersistence databasePersistence = new DatabasePersistence();
+    private JpaPersistence jpaPersistence;
     private Roperty roperty;
     private RopertyWithResolver ropertyWithResolver;
     private MapBackedDomainResolver resolver;
@@ -54,15 +54,19 @@ public class DatabaseIntegrationTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
-        Object[][] parameters = {
-                { "hsqldb" },
-                { "h2" }
-                // , { "postgresql" }
-        };
-        return Arrays.asList(parameters);
+        final JpaPersistence[] jpaPersistences = { new JpaPersistence(), new LazyJpaPersistence()};
+        final String[] persistenceUnits = { "hsqldb", "h2" };
+        List<Object[]> result = new ArrayList<>(jpaPersistences.length);
+
+        for (int i = 0; i < jpaPersistences.length; i++) {
+            result.add(new Object[] { jpaPersistences[i], persistenceUnits[i] });
+        }
+
+        return result;
     }
 
-    public DatabaseIntegrationTest(String persistenceUnitName) {
+    public JpaIntegrationTest(JpaPersistence jpaPersistence, String persistenceUnitName) {
+        this.jpaPersistence = jpaPersistence;
         this.persistenceUnitName = persistenceUnitName;
     }
 
@@ -88,11 +92,11 @@ public class DatabaseIntegrationTest {
         RopertyValueDAO ropertyValueDAO = new RopertyValueDAO();
         ropertyValueDAO.setQueryBuilderDelegate(valueQueryBuilderDelegate);
 
-        databasePersistence.setTransactionManager(transactionManager);
-        databasePersistence.setRopertyKeyDAO(ropertyKeyDAO);
-        databasePersistence.setRopertyValueDAO(ropertyValueDAO);
+        jpaPersistence.setTransactionManager(transactionManager);
+        jpaPersistence.setRopertyKeyDAO(ropertyKeyDAO);
+        jpaPersistence.setRopertyValueDAO(ropertyValueDAO);
 
-        roperty = new RopertyImpl(databasePersistence);
+        roperty = new RopertyImpl(jpaPersistence);
         resolver = new MapBackedDomainResolver()
                 .set("domain1", "domainValue1")
                 .set("domain2", "domainValue2");
@@ -114,7 +118,6 @@ public class DatabaseIntegrationTest {
         roperty.set("key_keyAndStringValueShouldBePersisted", "value_keyAndStringValueShouldBePersisted", "description_keyAndStringValueShouldBePersisted", "domainValue1", "domainValue2");
         roperty.reload();
         assertThat(roperty.get("key_keyAndStringValueShouldBePersisted", resolver), Matchers.<Object>is("value_keyAndStringValueShouldBePersisted"));
-        roperty.reload();
         KeyValues keyValues = roperty.getKeyValues("key_keyAndStringValueShouldBePersisted");
         assertThat(keyValues.getDescription(), is("description_keyAndStringValueShouldBePersisted"));
     }
