@@ -13,10 +13,6 @@ public class RopertyKeyDAO {
 
     public RopertyKey loadRopertyKey(String key) {
         Validate.notNull(queryBuilderDelegate, "Query builder delegate must not be null");
-        EqualsCriterion<String> equalsCriterion = new EqualsCriterion<String>()
-                .withAttributeName("id")
-                .withComparison(key);
-
         EntityManager entityManager = queryBuilderDelegate.createEntityManager();
         Validate.notNull(entityManager, "Entity manager must not be null");
         RopertyKey ropertyKey = entityManager.find(RopertyKey.class, key);
