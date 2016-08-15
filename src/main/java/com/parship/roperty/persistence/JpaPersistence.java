@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class DatabasePersistence implements Persistence {
+public class JpaPersistence implements Persistence {
 
     private RopertyKeyDAO ropertyKeyDAO;
 
