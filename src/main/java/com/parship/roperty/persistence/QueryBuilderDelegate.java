@@ -43,4 +43,10 @@ public class QueryBuilderDelegate<T> {
         Validate.notNull(resultClass, "Result class must not be null");
         queryBuilder.withResultClass(resultClass);
     }
+
+    public TypedQuery<Long> count(RopertyKey ropertyKey) {
+        Validate.notNull(ropertyKey, "Roperty key must not be null");
+        Validate.notNull(queryBuilder, "Query builder must not be null");
+        return queryBuilder.count(ropertyKey);
+    }
 }

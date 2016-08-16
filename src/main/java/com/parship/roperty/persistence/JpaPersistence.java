@@ -232,6 +232,8 @@ public class JpaPersistence implements Persistence {
             return;
         }
 
+        long numValues = ropertyValueDAO.getNumberOfValues(ropertyKey);
+
         String patternStr = domainSpecificValue.getPatternStr();
 
         Object value = domainSpecificValue.getValue();
@@ -251,6 +253,11 @@ public class JpaPersistence implements Persistence {
         }
 
         transactionManager.remove(ropertyValue);
+
+        if (numValues == 1) {
+            transactionManager.remove(ropertyKey);
+        }
+
         transactionManager.end();
     }
 

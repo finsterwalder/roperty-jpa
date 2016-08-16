@@ -11,6 +11,23 @@ public class RopertyValueDAO {
 
     private QueryBuilderDelegate<RopertyValue> queryBuilderDelegate;
 
+    public Long getNumberOfValues(RopertyKey ropertyKey) {
+        Validate.notNull(queryBuilderDelegate, "Query builder delegate must not be null");
+        EntityManager entityManager = queryBuilderDelegate.createEntityManager();
+        Validate.notNull(entityManager, "Entity manager must not be null");
+        TypedQuery<Long> typedQuery = queryBuilderDelegate.count(ropertyKey);
+        if (typedQuery == null) {
+            entityManager.close();
+            throw new RopertyPersistenceException(String.format("Typed query for counting of key '%s' must not be null", ropertyKey.getId()));
+        }
+        Long result = typedQuery.getSingleResult();
+        if (result == null) {
+            throw new RopertyPersistenceException("Single result of query must not be null");
+        }
+        entityManager.close();
+        return result;
+    }
+
     public List<RopertyValue> loadRopertyValues(RopertyKey ropertyKey) {
         Validate.notNull(queryBuilderDelegate, "Query builder delegate must not be null");
         EntityManager entityManager = queryBuilderDelegate.createEntityManager();

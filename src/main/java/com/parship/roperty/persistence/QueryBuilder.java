@@ -74,4 +74,19 @@ public class QueryBuilder<X> {
         return this;
     }
 
+    public TypedQuery<Long> count(RopertyKey ropertyKey) {
+        Validate.notNull(entityManager, "Entity manager must not be null");
+        Validate.notNull(resultClass, "Result class must not be null");
+
+        Metamodel metamodel = entityManager.getMetamodel();
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> query = criteriaBuilder.createQuery(Long.class);
+        EntityType<X> entityType = metamodel.entity(resultClass);
+        Root<X> root = query.from(entityType);
+
+        query.select(criteriaBuilder.count(root));
+        query.where(criteriaBuilder.equal(root.get(entityType.getSingularAttribute("key")), ropertyKey));
+
+        return entityManager.createQuery(query);
+    }
 }

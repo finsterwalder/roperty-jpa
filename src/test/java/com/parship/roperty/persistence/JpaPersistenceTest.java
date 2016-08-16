@@ -25,6 +25,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -271,6 +272,8 @@ public class JpaPersistenceTest {
         verify(transactionManager).end();
         verify(domainSpecificValue).getValue();
         verify(domainSpecificValue).getPatternStr();
+
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test
@@ -326,6 +329,8 @@ public class JpaPersistenceTest {
         verify(transactionManager).remove(ropertyValue);
         verify(transactionManager).remove(ropertyKey);
         verify(transactionManager).end();
+
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test
@@ -348,6 +353,8 @@ public class JpaPersistenceTest {
         verify(transactionManager).begin();
         verify(transactionManager).remove(ropertyValue);
         verify(transactionManager).end();
+
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test
@@ -357,6 +364,8 @@ public class JpaPersistenceTest {
         verify(ropertyKeyDAO).loadRopertyKey(KEY);
         verify(transactionManager).begin();
         verify(transactionManager).end();
+
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test(expected = RopertyPersistenceException.class)
@@ -388,6 +397,8 @@ public class JpaPersistenceTest {
         verify(transactionManager).end();
         verify(domainSpecificValue).getPatternStr();
         verify(domainSpecificValue).getValue();
+
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test
@@ -396,6 +407,7 @@ public class JpaPersistenceTest {
         when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
         when(domainSpecificValue.getValue()).thenReturn(value);
         when(ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN)).thenReturn(ropertyValue);
+        when(ropertyValueDAO.getNumberOfValues(ropertyKey)).thenReturn(2L);
 
         jpaPersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
 
@@ -406,6 +418,30 @@ public class JpaPersistenceTest {
         verify(transactionManager).end();
         verify(domainSpecificValue).getPatternStr();
         verify(domainSpecificValue).getValue();
+
+        verifyNoMoreInteractions(transactionManager);
+    }
+
+    @Test
+    public void removeExistingRopertyValueAndKey() {
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+        when(domainSpecificValue.getValue()).thenReturn(value);
+        when(ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN)).thenReturn(ropertyValue);
+        when(ropertyValueDAO.getNumberOfValues(ropertyKey)).thenReturn(1L);
+
+        jpaPersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
+
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN);
+        verify(transactionManager).begin();
+        verify(transactionManager).remove(ropertyValue);
+        verify(transactionManager).remove(ropertyKey);
+        verify(transactionManager).end();
+        verify(domainSpecificValue).getPatternStr();
+        verify(domainSpecificValue).getValue();
+
+        verifyNoMoreInteractions(transactionManager);
     }
 
 }

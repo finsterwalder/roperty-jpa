@@ -4,7 +4,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.persistence.EntityManager;
@@ -18,6 +17,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -130,9 +130,42 @@ public class RopertyValueDAOTest {
         verify(typedQuery).getResultList();
         verify(entityManager).close();
         assertThat(result, is(ropertyValue));
+    }
 
-        Mockito.verifyNoMoreInteractions(queryBuilderDelegate, entityManager, typedQuery, ropertyKey, ropertyValue, value);
+    @Test(expected = NullPointerException.class)
+    public void failIfCountAndNoEntityManager() {
+        ropertyValueDAO.getNumberOfValues(ropertyKey);
+    }
 
+    @Test(expected = RopertyPersistenceException.class)
+    public void failIfNoTypedQueryOnCount() {
+        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
+
+        ropertyValueDAO.getNumberOfValues(ropertyKey);
+    }
+
+    @Test(expected = RopertyPersistenceException.class)
+    public void failIfNoResultOnCount() {
+        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
+        TypedQuery<Long> countQuery = mock(TypedQuery.class);
+        when(queryBuilderDelegate.count(ropertyKey)).thenReturn(countQuery);
+
+        ropertyValueDAO.getNumberOfValues(ropertyKey);
+    }
+
+    @Test
+    public void countShouldReturnNumberOfValues() {
+        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
+        TypedQuery<Long> countQuery = mock(TypedQuery.class);
+        when(queryBuilderDelegate.count(ropertyKey)).thenReturn(countQuery);
+        when(countQuery.getSingleResult()).thenReturn(4711L);
+        Long result = ropertyValueDAO.getNumberOfValues(ropertyKey);
+
+        verify(queryBuilderDelegate).createEntityManager();
+        verify(queryBuilderDelegate).count(ropertyKey);
+        verify(countQuery).getSingleResult();
+        verify(entityManager).close();
+        assertThat(result, is(4711L));
     }
 
 
