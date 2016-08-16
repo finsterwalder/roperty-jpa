@@ -3,6 +3,7 @@ package com.parship.roperty.persistence.jpa;
 import com.parship.roperty.DomainSpecificValueFactory;
 import com.parship.roperty.KeyValues;
 import com.parship.roperty.KeyValuesFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
@@ -24,7 +25,12 @@ public class RopertyValueTransformer {
             String pattern = ropertyValue.getPattern();
             RopertyKey key = ropertyValue.getKey();
             Validate.notNull(pattern, "Pattern of value with key '%s' may not be null", key);
-            String[] domainKeyParts = pattern.split("\\|");
+            String[] domainKeyParts;
+            if (StringUtils.isEmpty(pattern)) {
+                domainKeyParts = new String[0];
+            } else {
+                domainKeyParts = pattern.split("\\|");
+            }
             Object value = ropertyValue.getValue();
             String changeSet = ropertyValue.getChangeSet();
             if (changeSet == null) {
