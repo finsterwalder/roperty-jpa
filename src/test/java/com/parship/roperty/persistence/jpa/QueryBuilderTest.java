@@ -1,7 +1,5 @@
 package com.parship.roperty.persistence.jpa;
 
-import com.parship.roperty.persistence.jpa.EqualsCriterion;
-import com.parship.roperty.persistence.jpa.QueryBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,35 +68,35 @@ public class QueryBuilderTest {
 
     @Before
     public void prepareMocks() {
-        Mockito.when(entityManager.getMetamodel()).thenReturn(metamodel);
-        Mockito.when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
-        Mockito.when(criteriaBuilder.createQuery(Long.class)).thenReturn(criteriaQuery);
-        Mockito.when(metamodel.entity(Long.class)).thenReturn(entityType);
-        Mockito.when(criteriaQuery.from(entityType)).thenReturn(root);
-        Mockito.when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
+        when(entityManager.getMetamodel()).thenReturn(metamodel);
+        when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        when(criteriaBuilder.createQuery(Long.class)).thenReturn(criteriaQuery);
+        when(metamodel.entity(Long.class)).thenReturn(entityType);
+        when(criteriaQuery.from(entityType)).thenReturn(root);
+        when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
         queryBuilder.withEntityManager(entityManager);
     }
 
     @Test
     public void fetchingEntityByAttributeEqualityShouldReturnTypedQuery() throws Exception {
         queryBuilder.withResultClass(Long.class);
-        Mockito.when(equalsCriterion.getAttributeName()).thenReturn("attributeName");
-        Mockito.when(equalsCriterion.getComparison()).thenReturn(1L);
-        Mockito.when(entityType.getSingularAttribute("attributeName")).thenReturn(singularAttribute);
-        Mockito.when(criteriaBuilder.equal(path, 1L)).thenReturn(restriction);
-        Mockito.when(criteriaBuilder.and(restriction)).thenReturn(predicate);
-        Mockito.when(root.get(singularAttribute)).thenReturn(path);
+        when(equalsCriterion.getAttributeName()).thenReturn("attributeName");
+        when(equalsCriterion.getComparison()).thenReturn(1L);
+        when(entityType.getSingularAttribute("attributeName")).thenReturn(singularAttribute);
+        when(criteriaBuilder.equal(path, 1L)).thenReturn(restriction);
+        when(criteriaBuilder.and(restriction)).thenReturn(predicate);
+        when(root.get(singularAttribute)).thenReturn(path);
 
         TypedQuery<Long> typedQuery = queryBuilder.equality(equalsCriterion);
 
-        Mockito.verify(equalsCriterion, Mockito.times(2)).getAttributeName();
-        Mockito.verify(entityType).getSingularAttribute("attributeName");
-        Mockito.verify(root).get(singularAttribute);
-        Mockito.verify(equalsCriterion, Mockito.times(2)).getComparison();
-        Mockito.verify(criteriaBuilder).equal(path, 1L);
-        Mockito.verify(criteriaQuery).where(predicate);
+        verify(equalsCriterion, times(2)).getAttributeName();
+        verify(entityType).getSingularAttribute("attributeName");
+        verify(root).get(singularAttribute);
+        verify(equalsCriterion, times(2)).getComparison();
+        verify(criteriaBuilder).equal(path, 1L);
+        verify(criteriaQuery).where(predicate);
         verifyMocks();
-        Assert.assertThat(typedQuery, Matchers.is(this.typedQuery));
+        assertThat(typedQuery, is(this.typedQuery));
     }
 
     @Test(expected = NullPointerException.class)
@@ -122,17 +120,17 @@ public class QueryBuilderTest {
         TypedQuery<Long> typedQuery = queryBuilder.all();
 
         verifyMocks();
-        Mockito.verify(criteriaQuery).select(root);
-        Assert.assertThat(typedQuery, Matchers.is(this.typedQuery));
+        verify(criteriaQuery).select(root);
+        assertThat(typedQuery, is(this.typedQuery));
     }
 
     private void verifyMocks() {
-        Mockito.verify(entityManager).getMetamodel();
-        Mockito.verify(entityManager).getCriteriaBuilder();
-        Mockito.verify(criteriaBuilder).createQuery(Long.class);
-        Mockito.verify(metamodel).entity(Long.class);
-        Mockito.verify(criteriaQuery).from(entityType);
-        Mockito.verify(entityManager).createQuery(criteriaQuery);
+        verify(entityManager).getMetamodel();
+        verify(entityManager).getCriteriaBuilder();
+        verify(criteriaBuilder).createQuery(Long.class);
+        verify(metamodel).entity(Long.class);
+        verify(criteriaQuery).from(entityType);
+        verify(entityManager).createQuery(criteriaQuery);
     }
 
 }

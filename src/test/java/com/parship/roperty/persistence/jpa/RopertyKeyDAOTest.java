@@ -1,14 +1,9 @@
 package com.parship.roperty.persistence.jpa;
 
-import com.parship.roperty.persistence.jpa.QueryBuilderDelegate;
-import com.parship.roperty.persistence.jpa.RopertyKey;
-import com.parship.roperty.persistence.jpa.RopertyKeyDAO;
-import com.parship.roperty.persistence.jpa.RopertyPersistenceException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.persistence.EntityManager;
@@ -22,6 +17,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -53,9 +49,9 @@ public class RopertyKeyDAOTest {
         verify(queryBuilderDelegate).createEntityManager();
         verify(entityManager).find(RopertyKey.class, KEY);
         verify(entityManager).close();
-        Assert.assertThat(result, Matchers.nullValue());
+        assertThat(result, nullValue());
 
-        Mockito.verifyNoMoreInteractions(queryBuilderDelegate, entityManager, typedQuery);
+        verifyNoMoreInteractions(queryBuilderDelegate, entityManager, typedQuery);
     }
 
     @Test
@@ -68,7 +64,7 @@ public class RopertyKeyDAOTest {
         verify(queryBuilderDelegate).createEntityManager();
         verify(entityManager).find(RopertyKey.class, KEY);
         verify(entityManager).close();
-        Assert.assertThat(result, Matchers.is(ropertyKey));
+        assertThat(result, is(ropertyKey));
     }
 
     @Test(expected = NullPointerException.class)
@@ -94,7 +90,7 @@ public class RopertyKeyDAOTest {
         verify(queryBuilderDelegate).all();
         verify(typedQuery).getResultList();
         verify(entityManager).close();
-        Assert.assertThat(ropertyKeys, Matchers.empty());
+        assertThat(ropertyKeys, empty());
     }
 
     @Test
@@ -109,8 +105,8 @@ public class RopertyKeyDAOTest {
         verify(queryBuilderDelegate).all();
         verify(typedQuery).getResultList();
         verify(entityManager).close();
-        Assert.assertThat(ropertyKeys, Matchers.contains(ropertyKey));
-        Assert.assertThat(ropertyKeys.size(), Matchers.is(1));
+        assertThat(ropertyKeys, contains(ropertyKey));
+        assertThat(ropertyKeys.size(), is(1));
     }
 
 }

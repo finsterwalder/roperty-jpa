@@ -346,6 +346,7 @@ public class JpaIntegrationTest {
     public void getKeyValues() {
         String key = "key";
         roperty.set(key, "value", null);
+        roperty.reload();
         KeyValues keyValues = roperty.getKeyValues(key);
         assertThat(keyValues.getDomainSpecificValues(), hasSize(1));
         String value = keyValues.get(new ArrayList<String>(), null, null);
@@ -355,6 +356,7 @@ public class JpaIntegrationTest {
     @Test
     public void getKeyValuesTrimsTheKey() {
         roperty.set("key", "value", null);
+        roperty.reload();
         assertThat(roperty.getKeyValues("  key"), notNullValue());
     }
 
@@ -374,6 +376,7 @@ public class JpaIntegrationTest {
     public void dumpToStdout() throws UnsupportedEncodingException {
         roperty.addDomains("dom1");
         roperty.set("key", "value", "descr");
+        roperty.reload();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         roperty.dump(new PrintStream(os));
         String output = os.toString("UTF8");
@@ -383,6 +386,7 @@ public class JpaIntegrationTest {
     @Test
     public void iterate() {
         roperty.set("key1", "value_1", "desc");
+        roperty.reload();
         Map<String, KeyValues> keyValues = roperty.getKeyValues();
         assertThat(keyValues.size(), is(1));
         assertThat(keyValues.containsKey("key1"), is(true));
@@ -398,6 +402,7 @@ public class JpaIntegrationTest {
         roperty.set("key", "valueDom", "desc", "domVal");
         roperty.set("key", "valueDom2", "desc", "domVal", "dom2");
         roperty.set("key", "valueDom3", "desc", "domVal", "dom2", "dom3");
+        roperty.reload();
         assertThat(roperty.<String>get("key", domainResolver), is("valueDom"));
     }
 
@@ -407,6 +412,7 @@ public class JpaIntegrationTest {
         roperty.addDomains("dom1");
         roperty.set("key", "value", "desc");
         roperty.set("key", "domValue", "desc", "dom1");
+        roperty.reload();
 
         roperty.remove("key");
 
@@ -420,7 +426,7 @@ public class JpaIntegrationTest {
         roperty.set("key", "value", "desc");
         roperty.set("key", "domValue1", "desc", "dom1");
         roperty.set("key", "domValue2", "desc", "dom1", "dom2");
-
+        roperty.reload();
         roperty.remove("key", "dom1");
 
         assertThat(roperty.<String>get("key", mock(DomainResolver.class)), is("value"));
@@ -431,6 +437,7 @@ public class JpaIntegrationTest {
     public void removeACompleteKey() {
         roperty.set("key", "value", "desc");
         roperty.set("key", "domValue1", "desc", "dom1");
+        roperty.reload();
         roperty.removeKey("key");
         assertThat(roperty.get("key", resolverMock), nullValue());
     }
@@ -439,6 +446,7 @@ public class JpaIntegrationTest {
     public void removeKeyFromChangeSet() {
         roperty.set("key", "value", "descr");
         roperty.setWithChangeSet("key", "valueChangeSet", "descr", "changeSet");
+        roperty.reload();
         DomainResolver resolver = new MapBackedDomainResolver().addActiveChangeSets("changeSet");
         assertThat(roperty.<String>get("key", resolver), is("valueChangeSet"));
         roperty.removeWithChangeSet("key", "changeSet");
@@ -450,6 +458,7 @@ public class JpaIntegrationTest {
         roperty.set("key", "value", "descr");
         roperty.setWithChangeSet("key", "valueChangeSet", "descr", "changeSet");
         roperty.setWithChangeSet("otherKey", "otherValueChangeSet", "descr", "changeSet");
+        roperty.reload();
         DomainResolver resolver = new MapBackedDomainResolver().addActiveChangeSets("changeSet");
         assertThat(roperty.<String>get("key", resolver), is("valueChangeSet"));
         assertThat(roperty.<String>get("otherKey", resolver), is("otherValueChangeSet"));
