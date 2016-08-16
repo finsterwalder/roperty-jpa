@@ -26,7 +26,13 @@ public class RopertyValueTransformer {
             Validate.notNull(pattern, "Pattern of value with key '%s' may not be null", key);
             String[] domainKeyParts = pattern.split("\\|");
             Object value = ropertyValue.getValue();
-            keyValues.putWithChangeSet(ropertyValue.getChangeSet(), value, domainKeyParts);
+            String changeSet = ropertyValue.getChangeSet();
+            if (changeSet == null) {
+                keyValues.put(value, domainKeyParts);
+            } else {
+                keyValues.putWithChangeSet(changeSet, value, domainKeyParts);
+            }
+
             Validate.notNull(key, "Key of value '%s' for pattern '%s' may not be null", value, pattern);
             keyValues.setDescription(key.getDescription());
         }
