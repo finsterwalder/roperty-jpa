@@ -1,4 +1,4 @@
-package com.parship.roperty.persistence;
+package com.parship.roperty.persistence.jpa;
 
 import com.parship.roperty.DomainSpecificValue;
 import com.parship.roperty.DomainSpecificValueFactory;

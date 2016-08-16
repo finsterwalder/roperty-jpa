@@ -1,4 +1,4 @@
-package com.parship.roperty.persistence;
+package com.parship.roperty.persistence.jpa;
 
 public class EqualsCriterion<Y> {
     private String attributeName;

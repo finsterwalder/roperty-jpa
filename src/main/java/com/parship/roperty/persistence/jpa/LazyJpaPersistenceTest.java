@@ -1,8 +1,9 @@
-package com.parship.roperty.persistence;
+package com.parship.roperty.persistence.jpa;
 
 import com.parship.roperty.DomainSpecificValueFactory;
 import com.parship.roperty.KeyValues;
 import com.parship.roperty.KeyValuesFactory;
+import com.parship.roperty.persistence.jpa.LazyJpaPersistence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -36,8 +37,8 @@ public class LazyJpaPersistenceTest {
     @Test
     public void loadAllShouldReturnEmptyMap() {
         Map<String, KeyValues> result = lazyJpaPersistence.loadAll(keyValuesFactory, domainSpecificValueFactory);
-        assertThat(result.isEmpty(), is(true));
-        verifyZeroInteractions(keyValuesFactory, domainSpecificValueFactory);
+        Assert.assertThat(result.isEmpty(), Matchers.is(true));
+        Mockito.verifyZeroInteractions(keyValuesFactory, domainSpecificValueFactory);
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -51,10 +52,10 @@ public class LazyJpaPersistenceTest {
         Map<String, KeyValues> keyValuesMap = new HashMap<>(1);
         keyValuesMap.put(KEY, keyValues);
         Map<String, KeyValues> result = lazyJpaPersistence.reload(keyValuesMap, keyValuesFactory, domainSpecificValueFactory);
-        assertThat(result.isEmpty(), is(true));
-        assertThat(keyValuesMap.size(), is(1));
-        assertThat(keyValuesMap.get(KEY), is(keyValues));
-        verifyZeroInteractions(keyValuesFactory, domainSpecificValueFactory);
+        Assert.assertThat(result.isEmpty(), Matchers.is(true));
+        Assert.assertThat(keyValuesMap.size(), Matchers.is(1));
+        Assert.assertThat(keyValuesMap.get(KEY), Matchers.is(keyValues));
+        Mockito.verifyZeroInteractions(keyValuesFactory, domainSpecificValueFactory);
     }
 
     @Test(expected = UnsupportedOperationException.class)

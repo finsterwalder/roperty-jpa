@@ -1,4 +1,4 @@
-package com.parship.roperty.persistence;
+package com.parship.roperty.persistence.jpa;
 
 import org.apache.commons.lang3.Validate;
 

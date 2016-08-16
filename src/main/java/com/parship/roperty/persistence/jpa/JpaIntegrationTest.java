@@ -1,4 +1,4 @@
-package com.parship.roperty.persistence;
+package com.parship.roperty.persistence.jpa;
 
 
 import com.parship.roperty.DomainResolver;
@@ -7,6 +7,15 @@ import com.parship.roperty.MapBackedDomainResolver;
 import com.parship.roperty.Roperty;
 import com.parship.roperty.RopertyImpl;
 import com.parship.roperty.RopertyWithResolver;
+import com.parship.roperty.persistence.jpa.JpaPersistence;
+import com.parship.roperty.persistence.jpa.LazyJpaPersistence;
+import com.parship.roperty.persistence.jpa.QueryBuilder;
+import com.parship.roperty.persistence.jpa.QueryBuilderDelegate;
+import com.parship.roperty.persistence.jpa.RopertyKey;
+import com.parship.roperty.persistence.jpa.RopertyKeyDAO;
+import com.parship.roperty.persistence.jpa.RopertyValue;
+import com.parship.roperty.persistence.jpa.RopertyValueDAO;
+import com.parship.roperty.persistence.jpa.TransactionManager;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -101,8 +110,8 @@ public class JpaIntegrationTest {
                 .set("domain1", "domainValue1")
                 .set("domain2", "domainValue2");
 
-        when(resolverMock.getActiveChangeSets()).thenReturn(new ArrayList<String>());
-        when(resolverMock.getDomainValue(anyString())).thenAnswer(new Answer<String>() {
+        Mockito.when(resolverMock.getActiveChangeSets()).thenReturn(new ArrayList<String>());
+        Mockito.when(resolverMock.getDomainValue(Matchers.anyString())).thenAnswer(new Answer<String>() {
             @Override
             public String answer(InvocationOnMock invocationOnMock) throws Throwable {
                 return (String)invocationOnMock.getArguments()[0];
@@ -117,9 +126,9 @@ public class JpaIntegrationTest {
         roperty.addDomains("domain1", "domain2");
         roperty.set("key_keyAndStringValueShouldBePersisted", "value_keyAndStringValueShouldBePersisted", "description_keyAndStringValueShouldBePersisted", "domainValue1", "domainValue2");
         roperty.reload();
-        assertThat(roperty.get("key_keyAndStringValueShouldBePersisted", resolver), Matchers.<Object>is("value_keyAndStringValueShouldBePersisted"));
+        Assert.assertThat(roperty.get("key_keyAndStringValueShouldBePersisted", resolver), Matchers.<Object>is("value_keyAndStringValueShouldBePersisted"));
         KeyValues keyValues = roperty.getKeyValues("key_keyAndStringValueShouldBePersisted");
-        assertThat(keyValues.getDescription(), is("description_keyAndStringValueShouldBePersisted"));
+        Assert.assertThat(keyValues.getDescription(), Matchers.is("description_keyAndStringValueShouldBePersisted"));
     }
 
     @Test
@@ -128,7 +137,7 @@ public class JpaIntegrationTest {
         Date dateValue = new Date(123456789101112L);
         roperty.set("key_keyAndDateValueShouldBePersisted", dateValue, "description_keyAndDateValueShouldBePersisted", "domainValue1", "domainValue2");
         roperty.reload();
-        assertThat(roperty.get("key_keyAndDateValueShouldBePersisted", resolver), Matchers.<Object>is(dateValue));
+        Assert.assertThat(roperty.get("key_keyAndDateValueShouldBePersisted", resolver), Matchers.<Object>is(dateValue));
     }
 
     @Test
@@ -137,9 +146,9 @@ public class JpaIntegrationTest {
         roperty.setWithChangeSet("key_changeSetShouldBeRemoved", "value_changeSetShouldBeRemoved", "description_changeSetShouldBeRemoved", "changeSet_changeSetShouldBeRemoved", "domainValue1", "domainValue2");
         roperty.reload();
         resolver.addActiveChangeSets("changeSet_changeSetShouldBeRemoved");
-        assertThat(roperty.get("key_changeSetShouldBeRemoved", resolver), Matchers.<Object>is("value_changeSetShouldBeRemoved"));
+        Assert.assertThat(roperty.get("key_changeSetShouldBeRemoved", resolver), Matchers.<Object>is("value_changeSetShouldBeRemoved"));
         roperty.removeChangeSet("changeSet_changeSetShouldBeRemoved");
-        assertThat(roperty.get("key_changeSetShouldBeRemoved", resolver), nullValue());
+        Assert.assertThat(roperty.get("key_changeSetShouldBeRemoved", resolver), Matchers.nullValue());
     }
 
     @Test
@@ -148,9 +157,9 @@ public class JpaIntegrationTest {
         roperty.setWithChangeSet("key_keyAndValueShouldBeRemovedWithChangeSet", "value_keyAndValueShouldBeRemovedWithChangeSet", "description_keyAndValueShouldBeRemovedWithChangeSet", "changeSet_keyAndValueShouldBeRemovedWithChangeSet", "domainValue1", "domainValue2");
         roperty.reload();
         resolver.addActiveChangeSets("changeSet_keyAndValueShouldBeRemovedWithChangeSet");
-        assertThat(roperty.get("key_keyAndValueShouldBeRemovedWithChangeSet", resolver), Matchers.<Object>is("value_keyAndValueShouldBeRemovedWithChangeSet"));
+        Assert.assertThat(roperty.get("key_keyAndValueShouldBeRemovedWithChangeSet", resolver), Matchers.<Object>is("value_keyAndValueShouldBeRemovedWithChangeSet"));
         roperty.removeWithChangeSet("key_keyAndValueShouldBeRemovedWithChangeSet", "changeSet_keyAndValueShouldBeRemovedWithChangeSet", "domainValue1", "domainValue2");
-        assertThat(roperty.get("key_keyAndValueShouldBeRemovedWithChangeSet", resolver), nullValue());
+        Assert.assertThat(roperty.get("key_keyAndValueShouldBeRemovedWithChangeSet", resolver), Matchers.nullValue());
     }
 
     @Test
@@ -158,9 +167,9 @@ public class JpaIntegrationTest {
         roperty.addDomains("domain1", "domain2");
         roperty.set("key_keyAndValueShouldBeRemoved", "value_keyAndValueShouldBeRemoved", "description_keyAndValueShouldBeRemoved", "domainValue1", "domainValue2");
         roperty.reload();
-        assertThat(roperty.get("key_keyAndValueShouldBeRemoved", resolver), Matchers.<Object>is("value_keyAndValueShouldBeRemoved"));
+        Assert.assertThat(roperty.get("key_keyAndValueShouldBeRemoved", resolver), Matchers.<Object>is("value_keyAndValueShouldBeRemoved"));
         roperty.remove("key_keyAndValueShouldBeRemoved", "domainValue1", "domainValue2");
-        assertThat(roperty.get("key_keyAndValueShouldBeRemoved", resolver), nullValue());
+        Assert.assertThat(roperty.get("key_keyAndValueShouldBeRemoved", resolver), Matchers.nullValue());
     }
 
     @Test
@@ -168,36 +177,36 @@ public class JpaIntegrationTest {
         roperty.addDomains("domain1", "domain2");
         roperty.set("key_removingKeyRemovesAllValues", "value_removingKeyRemovesAllValues", "description_removingKeyRemovesAllValues", "domainValue1", "domainValue2");
         roperty.reload();
-        assertThat(roperty.get("key_removingKeyRemovesAllValues", resolver), Matchers.<Object>is("value_removingKeyRemovesAllValues"));
+        Assert.assertThat(roperty.get("key_removingKeyRemovesAllValues", resolver), Matchers.<Object>is("value_removingKeyRemovesAllValues"));
         roperty.removeKey("key_removingKeyRemovesAllValues");
-        assertThat(roperty.get("key_removingKeyRemovesAllValues", resolver), nullValue());
+        Assert.assertThat(roperty.get("key_removingKeyRemovesAllValues", resolver), Matchers.nullValue());
     }
 
     @Test
     public void gettingAPropertyThatDoesNotExistGivesNull() {
         String value = ropertyWithResolver.get("key");
-        assertThat(value, nullValue());
+        Assert.assertThat(value, Matchers.nullValue());
     }
 
     @Test
     public void gettingAPropertyThatDoesNotExistGivesDefaultValue() {
         String text = "default";
         String value = ropertyWithResolver.get("key", text);
-        assertThat(value, is(text));
+        Assert.assertThat(value, Matchers.is(text));
     }
 
     @Test
     public void settingNullAsValue() {
         ropertyWithResolver.set("key", "value", null);
-        assertThat((String) ropertyWithResolver.get("key"), is("value"));
+        Assert.assertThat((String) ropertyWithResolver.get("key"), Matchers.is("value"));
         ropertyWithResolver.set("key", null, null);
-        assertThat(ropertyWithResolver.get("key"), nullValue());
+        Assert.assertThat(ropertyWithResolver.get("key"), Matchers.nullValue());
     }
 
     @Test
     public void settingAnEmptyString() {
         ropertyWithResolver.set("key", "", null);
-        assertThat((String) ropertyWithResolver.get("key"), is(""));
+        Assert.assertThat((String) ropertyWithResolver.get("key"), Matchers.is(""));
     }
 
     @Test
@@ -206,7 +215,7 @@ public class JpaIntegrationTest {
         String text = "some Value";
         ropertyWithResolver.set(key, text, null);
         String value = ropertyWithResolver.get(key, "default");
-        assertThat(value, is(text));
+        Assert.assertThat(value, Matchers.is(text));
     }
 
     @Test
@@ -214,7 +223,7 @@ public class JpaIntegrationTest {
         String text = "value";
         ropertyWithResolver.set("key", text, null);
         String value = ropertyWithResolver.get("key");
-        assertThat(value, is(text));
+        Assert.assertThat(value, Matchers.is(text));
     }
 
     @Test
@@ -222,29 +231,29 @@ public class JpaIntegrationTest {
         ropertyWithResolver.set("key", "first", null);
         ropertyWithResolver.set("key", "other", null);
         String value = ropertyWithResolver.get("key", "default");
-        assertThat(value, is("other"));
+        Assert.assertThat(value, Matchers.is("other"));
     }
 
     @Test
     public void gettingAnIntValueThatDoesNotExistGivesDefault() {
         int value = ropertyWithResolver.get("key", 3);
-        assertThat(value, is(3));
+        Assert.assertThat(value, Matchers.is(3));
     }
 
     @Test
     public void settingAndGettingAnIntValueWithDefaultGivesStoredValue() {
         ropertyWithResolver.set("key", 7, null);
         int value = ropertyWithResolver.get("key", 3);
-        assertThat(value, is(7));
+        Assert.assertThat(value, Matchers.is(7));
     }
 
     @Test
     public void getOrDefineSetsAValueWithTheGivenDefault() {
         String text = "text";
         String value = ropertyWithResolver.getOrDefine("key", text, "descr");
-        assertThat(value, is(text));
+        Assert.assertThat(value, Matchers.is(text));
         value = ropertyWithResolver.getOrDefine("key", "other default");
-        assertThat(value, is(text));
+        Assert.assertThat(value, Matchers.is(text));
     }
 
     @Test
@@ -256,13 +265,13 @@ public class JpaIntegrationTest {
         ropertyWithResolver.set("key", defaultValue, null);
         ropertyWithResolver.set("key", overriddenValue, null, "domain1");
         String value = ropertyWithResolver.get("key");
-        assertThat(value, is(overriddenValue));
+        Assert.assertThat(value, Matchers.is(overriddenValue));
     }
 
     @Test
     public void whenAKeyForASubdomainIsSetTheRootKeyGetsANullValue() {
         ropertyWithResolver.set("key", "value", "descr", "subdomain");
-        assertThat(ropertyWithResolver.get("key"), nullValue());
+        Assert.assertThat(ropertyWithResolver.get("key"), Matchers.nullValue());
     }
 
     @Test
@@ -274,15 +283,15 @@ public class JpaIntegrationTest {
         ropertyWithResolver.set("key", overriddenValue, null, "domain1");
         ropertyWithResolver.set("key", "yet another value", null, "yet another");
         String value = ropertyWithResolver.get("key");
-        assertThat(value, is(overriddenValue));
+        Assert.assertThat(value, Matchers.is(overriddenValue));
     }
 
     @Test
     public void theCorrectValueIsSelectedWhenAlternativeOverriddenValuesExistWithTwoDomains() {
         roperty.addDomains("domain1", "domain2");
-        DomainResolver mockResolver = mock(DomainResolver.class);
-        when(mockResolver.getDomainValue("domain1")).thenReturn("domVal1");
-        when(mockResolver.getDomainValue("domain2")).thenReturn("domVal2");
+        DomainResolver mockResolver = Mockito.mock(DomainResolver.class);
+        Mockito.when(mockResolver.getDomainValue("domain1")).thenReturn("domVal1");
+        Mockito.when(mockResolver.getDomainValue("domain2")).thenReturn("domVal2");
         ropertyWithResolver = new RopertyWithResolver(roperty, mockResolver);
         String overriddenValue = "overridden value";
         ropertyWithResolver.set("key", "other value", null, "other");
@@ -290,7 +299,7 @@ public class JpaIntegrationTest {
         ropertyWithResolver.set("key", overriddenValue, null, "domVal1", "domVal2");
         ropertyWithResolver.set("key", "yet another value", null, "domVal1", "other");
         String value = ropertyWithResolver.get("key");
-        assertThat(value, is(overriddenValue));
+        Assert.assertThat(value, Matchers.is(overriddenValue));
     }
 
     @Test
@@ -302,29 +311,29 @@ public class JpaIntegrationTest {
         ropertyWithResolver.set("key", defaultValue, null);
         ropertyWithResolver.set("key", overriddenValue1, null, "domain1");
         String value = ropertyWithResolver.get("key");
-        assertThat(value, is(overriddenValue1));
+        Assert.assertThat(value, Matchers.is(overriddenValue1));
     }
 
     @Test
     public void domainValuesAreRequestedFromAResolver() {
         ((RopertyImpl) ropertyWithResolver.getRoperty()).addDomains("domain1", "domain2");
-        DomainResolver mockResolver = mock(DomainResolver.class);
+        DomainResolver mockResolver = Mockito.mock(DomainResolver.class);
         ropertyWithResolver = new RopertyWithResolver(roperty, mockResolver);
         ropertyWithResolver.set("key", "value", null);
         ropertyWithResolver.get("key");
-        verify(mockResolver).getDomainValue("domain1");
-        verify(mockResolver).getDomainValue("domain2");
-        verify(mockResolver).getActiveChangeSets();
-        verifyNoMoreInteractions(mockResolver);
+        Mockito.verify(mockResolver).getDomainValue("domain1");
+        Mockito.verify(mockResolver).getDomainValue("domain2");
+        Mockito.verify(mockResolver).getActiveChangeSets();
+        Mockito.verifyNoMoreInteractions(mockResolver);
     }
 
     @Test
     public void noDomainValuesAreRequestedWhenAKeyDoesNotExist() {
         roperty.addDomains("domain1", "domain2");
-        DomainResolver mockResolver = mock(DomainResolver.class);
+        DomainResolver mockResolver = Mockito.mock(DomainResolver.class);
         ropertyWithResolver = new RopertyWithResolver(roperty, mockResolver);
         ropertyWithResolver.get("key");
-        verifyNoMoreInteractions(mockResolver);
+        Mockito.verifyNoMoreInteractions(mockResolver);
     }
 
     @Test
@@ -333,13 +342,13 @@ public class JpaIntegrationTest {
         ropertyWithResolver = new RopertyWithResolver(roperty, resolverMock);
         String value = "overridden value";
         ropertyWithResolver.set("key", value, null, "*", "domain2");
-        assertThat((String) ropertyWithResolver.get("key"), is(value));
+        Assert.assertThat((String) ropertyWithResolver.get("key"), Matchers.is(value));
     }
 
     @Test
     public void domainsThatAreInitializedArePresent() {
         RopertyImpl roperty = new RopertyImpl("domain1", "domain2");
-        assertThat(roperty.dump().toString(), is("Roperty{domains=[domain1, domain2]\n}"));
+        Assert.assertThat(roperty.dump().toString(), Matchers.is("Roperty{domains=[domain1, domain2]\n}"));
     }
 
     @Test
@@ -347,27 +356,27 @@ public class JpaIntegrationTest {
         String key = "key";
         roperty.set(key, "value", null);
         KeyValues keyValues = roperty.getKeyValues(key);
-        assertThat(keyValues.getDomainSpecificValues(), hasSize(1));
+        Assert.assertThat(keyValues.getDomainSpecificValues(), Matchers.hasSize(1));
         String value = keyValues.get(new ArrayList<String>(), null, null);
-        assertThat(value, is("value"));
+        Assert.assertThat(value, Matchers.is("value"));
     }
 
     @Test
     public void getKeyValuesTrimsTheKey() {
         roperty.set("key", "value", null);
-        assertThat(roperty.getKeyValues("  key"), notNullValue());
+        Assert.assertThat(roperty.getKeyValues("  key"), Matchers.notNullValue());
     }
 
     @Test
     public void ropertyWithResolverToString() {
-        assertThat(ropertyWithResolver.toString(), is("RopertyWithResolver{roperty=Roperty{domains=[]}}"));
+        Assert.assertThat(ropertyWithResolver.toString(), Matchers.is("RopertyWithResolver{roperty=Roperty{domains=[]}}"));
     }
 
     @Test
     public void toStringEmptyRoperty() {
-        assertThat(roperty.dump().toString(), is("Roperty{domains=[]\n}"));
+        Assert.assertThat(roperty.dump().toString(), Matchers.is("Roperty{domains=[]\n}"));
         roperty.addDomains("domain");
-        assertThat(roperty.dump().toString(), is("Roperty{domains=[domain]\n}"));
+        Assert.assertThat(roperty.dump().toString(), Matchers.is("Roperty{domains=[domain]\n}"));
     }
 
     @Test
@@ -377,16 +386,16 @@ public class JpaIntegrationTest {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         roperty.dump(new PrintStream(os));
         String output = os.toString("UTF8");
-        assertThat(output, is("Roperty{domains=[dom1]\nKeyValues for \"key\": KeyValues{\n\tdescription=\"descr\"\n\tDomainSpecificValue{pattern=\"\", ordering=1, value=\"value\"}\n}\n}\n"));
+        Assert.assertThat(output, Matchers.is("Roperty{domains=[dom1]\nKeyValues for \"key\": KeyValues{\n\tdescription=\"descr\"\n\tDomainSpecificValue{pattern=\"\", ordering=1, value=\"value\"}\n}\n}\n"));
     }
 
     @Test
     public void iterate() {
         roperty.set("key1", "value_1", "desc");
         Map<String, KeyValues> keyValues = roperty.getKeyValues();
-        assertThat(keyValues.size(), is(1));
-        assertThat(keyValues.containsKey("key1"), is(true));
-        assertThat(keyValues.get("key1").<String>getDefaultValue(), is("value_1"));
+        Assert.assertThat(keyValues.size(), Matchers.is(1));
+        Assert.assertThat(keyValues.containsKey("key1"), Matchers.is(true));
+        Assert.assertThat(keyValues.get("key1").<String>getDefaultValue(), Matchers.is("value_1"));
     }
 
     @Test
@@ -398,7 +407,7 @@ public class JpaIntegrationTest {
         roperty.set("key", "valueDom", "desc", "domVal");
         roperty.set("key", "valueDom2", "desc", "domVal", "dom2");
         roperty.set("key", "valueDom3", "desc", "domVal", "dom2", "dom3");
-        assertThat(roperty.<String>get("key", domainResolver), is("valueDom"));
+        Assert.assertThat(roperty.<String>get("key", domainResolver), Matchers.is("valueDom"));
     }
 
     @Test
@@ -410,8 +419,8 @@ public class JpaIntegrationTest {
 
         roperty.remove("key");
 
-        assertThat(roperty.get("key", mock(DomainResolver.class)), nullValue());
-        assertThat(roperty.<String>get("key", resolverMock), is("domValue"));
+        Assert.assertThat(roperty.get("key", Mockito.mock(DomainResolver.class)), Matchers.nullValue());
+        Assert.assertThat(roperty.<String>get("key", resolverMock), Matchers.is("domValue"));
     }
 
     @Test
@@ -423,8 +432,8 @@ public class JpaIntegrationTest {
 
         roperty.remove("key", "dom1");
 
-        assertThat(roperty.<String>get("key", mock(DomainResolver.class)), is("value"));
-        assertThat(roperty.<String>get("key", resolverMock), is("domValue2"));
+        Assert.assertThat(roperty.<String>get("key", Mockito.mock(DomainResolver.class)), Matchers.is("value"));
+        Assert.assertThat(roperty.<String>get("key", resolverMock), Matchers.is("domValue2"));
     }
 
     @Test
@@ -432,7 +441,7 @@ public class JpaIntegrationTest {
         roperty.set("key", "value", "desc");
         roperty.set("key", "domValue1", "desc", "dom1");
         roperty.removeKey("key");
-        assertThat(roperty.get("key", resolverMock), nullValue());
+        Assert.assertThat(roperty.get("key", resolverMock), Matchers.nullValue());
     }
 
     @Test
@@ -440,9 +449,9 @@ public class JpaIntegrationTest {
         roperty.set("key", "value", "descr");
         roperty.setWithChangeSet("key", "valueChangeSet", "descr", "changeSet");
         DomainResolver resolver = new MapBackedDomainResolver().addActiveChangeSets("changeSet");
-        assertThat(roperty.<String>get("key", resolver), is("valueChangeSet"));
+        Assert.assertThat(roperty.<String>get("key", resolver), Matchers.is("valueChangeSet"));
         roperty.removeWithChangeSet("key", "changeSet");
-        assertThat(roperty.<String>get("key", resolver), is("value"));
+        Assert.assertThat(roperty.<String>get("key", resolver), Matchers.is("value"));
     }
 
     @Test
@@ -451,11 +460,11 @@ public class JpaIntegrationTest {
         roperty.setWithChangeSet("key", "valueChangeSet", "descr", "changeSet");
         roperty.setWithChangeSet("otherKey", "otherValueChangeSet", "descr", "changeSet");
         DomainResolver resolver = new MapBackedDomainResolver().addActiveChangeSets("changeSet");
-        assertThat(roperty.<String>get("key", resolver), is("valueChangeSet"));
-        assertThat(roperty.<String>get("otherKey", resolver), is("otherValueChangeSet"));
+        Assert.assertThat(roperty.<String>get("key", resolver), Matchers.is("valueChangeSet"));
+        Assert.assertThat(roperty.<String>get("otherKey", resolver), Matchers.is("otherValueChangeSet"));
         roperty.removeChangeSet("changeSet");
-        assertThat(roperty.<String>get("key", resolver), is("value"));
-        assertThat(roperty.<String>get("otherKey", resolver), nullValue());
+        Assert.assertThat(roperty.<String>get("key", resolver), Matchers.is("value"));
+        Assert.assertThat(roperty.<String>get("otherKey", resolver), Matchers.nullValue());
     }
 
 
