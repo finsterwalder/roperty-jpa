@@ -10,7 +10,6 @@ import org.apache.commons.lang3.Validate;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -190,7 +189,7 @@ public class JpaPersistence implements Persistence {
             throw new RopertyPersistenceException(String.format("Could not find any values for key '%s'. This is an inconsistency that should not happen.", key));
         }
 
-        Set<DomainSpecificValue> domainSpecificValues = new HashSet<>(keyValues.getDomainSpecificValues());
+        Set<DomainSpecificValue> domainSpecificValues = keyValues.getDomainSpecificValues();
         int numDomainSpecificValues = domainSpecificValues.size();
         if (numDomainSpecificValues == 0) {
             transactionManager.end();
@@ -199,14 +198,12 @@ public class JpaPersistence implements Persistence {
 
         int numRemovedValues = 0;
 
-        for (Iterator<DomainSpecificValue> itDomainSpecificValue = domainSpecificValues.iterator(); itDomainSpecificValue.hasNext(); ) {
-            DomainSpecificValue domainSpecificValue = itDomainSpecificValue.next();
+        for (DomainSpecificValue domainSpecificValue : domainSpecificValues) {
             for (Iterator<RopertyValue> itRopertyValue = ropertyValues.iterator(); itRopertyValue.hasNext(); ) {
                 RopertyValue ropertyValue = itRopertyValue.next();
                 if (ropertyValue.equals(domainSpecificValue)) {
                     transactionManager.remove(ropertyValue);
                     itRopertyValue.remove();
-                    itDomainSpecificValue.remove();
                     numRemovedValues++;
                 }
             }
