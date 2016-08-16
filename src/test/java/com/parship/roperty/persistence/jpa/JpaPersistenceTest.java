@@ -4,17 +4,13 @@ import com.parship.roperty.DomainSpecificValue;
 import com.parship.roperty.DomainSpecificValueFactory;
 import com.parship.roperty.KeyValues;
 import com.parship.roperty.KeyValuesFactory;
-import com.parship.roperty.persistence.jpa.JpaPersistence;
-import com.parship.roperty.persistence.jpa.RopertyKey;
-import com.parship.roperty.persistence.jpa.RopertyKeyDAO;
-import com.parship.roperty.persistence.jpa.RopertyPersistenceException;
-import com.parship.roperty.persistence.jpa.RopertyValue;
-import com.parship.roperty.persistence.jpa.RopertyValueDAO;
-import com.parship.roperty.persistence.jpa.TransactionManager;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.Serializable;
@@ -23,17 +19,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JpaPersistenceTest {

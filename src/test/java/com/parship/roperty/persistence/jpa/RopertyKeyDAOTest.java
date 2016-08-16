@@ -46,13 +46,13 @@ public class RopertyKeyDAOTest {
 
     @Test
     public void nonExistingRopertyKeyShouldReturnNull() {
-        Mockito.when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
+        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
 
         RopertyKey result = ropertyKeyDAO.loadRopertyKey(KEY);
 
-        Mockito.verify(queryBuilderDelegate).createEntityManager();
-        Mockito.verify(entityManager).find(RopertyKey.class, KEY);
-        Mockito.verify(entityManager).close();
+        verify(queryBuilderDelegate).createEntityManager();
+        verify(entityManager).find(RopertyKey.class, KEY);
+        verify(entityManager).close();
         Assert.assertThat(result, Matchers.nullValue());
 
         Mockito.verifyNoMoreInteractions(queryBuilderDelegate, entityManager, typedQuery);
@@ -60,14 +60,14 @@ public class RopertyKeyDAOTest {
 
     @Test
     public void existingRopertyKeyShouldBeReturned() {
-        Mockito.when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
-        Mockito.when(entityManager.find(RopertyKey.class, KEY)).thenReturn(ropertyKey);
+        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
+        when(entityManager.find(RopertyKey.class, KEY)).thenReturn(ropertyKey);
 
         RopertyKey result = ropertyKeyDAO.loadRopertyKey(KEY);
 
-        Mockito.verify(queryBuilderDelegate).createEntityManager();
-        Mockito.verify(entityManager).find(RopertyKey.class, KEY);
-        Mockito.verify(entityManager).close();
+        verify(queryBuilderDelegate).createEntityManager();
+        verify(entityManager).find(RopertyKey.class, KEY);
+        verify(entityManager).close();
         Assert.assertThat(result, Matchers.is(ropertyKey));
     }
 
@@ -78,37 +78,37 @@ public class RopertyKeyDAOTest {
 
     @Test(expected = RopertyPersistenceException.class)
     public void failIfTypedQueryIsNullOnLoadingAllRopertyKeys() {
-        Mockito.when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
+        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
 
         ropertyKeyDAO.loadAllRopertyKeys();
     }
 
     @Test
     public void loadAllReturnsEmptyListIfNoRopertyKeysGiven() {
-        Mockito.when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
-        Mockito.when(queryBuilderDelegate.all()).thenReturn(typedQuery);
+        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
+        when(queryBuilderDelegate.all()).thenReturn(typedQuery);
 
         List<RopertyKey> ropertyKeys = ropertyKeyDAO.loadAllRopertyKeys();
 
-        Mockito.verify(queryBuilderDelegate).createEntityManager();
-        Mockito.verify(queryBuilderDelegate).all();
-        Mockito.verify(typedQuery).getResultList();
-        Mockito.verify(entityManager).close();
+        verify(queryBuilderDelegate).createEntityManager();
+        verify(queryBuilderDelegate).all();
+        verify(typedQuery).getResultList();
+        verify(entityManager).close();
         Assert.assertThat(ropertyKeys, Matchers.empty());
     }
 
     @Test
     public void loadAllReturnsRopertyKeys() {
-        Mockito.when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
-        Mockito.when(queryBuilderDelegate.all()).thenReturn(typedQuery);
-        Mockito.when(typedQuery.getResultList()).thenReturn(Arrays.asList(ropertyKey));
+        when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
+        when(queryBuilderDelegate.all()).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(Arrays.asList(ropertyKey));
 
         List<RopertyKey> ropertyKeys = ropertyKeyDAO.loadAllRopertyKeys();
 
-        Mockito.verify(queryBuilderDelegate).createEntityManager();
-        Mockito.verify(queryBuilderDelegate).all();
-        Mockito.verify(typedQuery).getResultList();
-        Mockito.verify(entityManager).close();
+        verify(queryBuilderDelegate).createEntityManager();
+        verify(queryBuilderDelegate).all();
+        verify(typedQuery).getResultList();
+        verify(entityManager).close();
         Assert.assertThat(ropertyKeys, Matchers.contains(ropertyKey));
         Assert.assertThat(ropertyKeys.size(), Matchers.is(1));
     }
