@@ -137,7 +137,7 @@ public class JpaPersistence implements Persistence {
                 transactionManager.persist(ropertyValue);
             } else {
                 boolean merge = false;
-                if (!Objects.equals(ropertyValue.getChangeSet(), changeSet)) {
+                if (!Objects.equals(ropertyValue.getChangeSet(), nullWhenEmpty(changeSet))) {
                     ropertyValue.setChangeSet(nullWhenEmpty(changeSet));
                     merge = true;
                 }
