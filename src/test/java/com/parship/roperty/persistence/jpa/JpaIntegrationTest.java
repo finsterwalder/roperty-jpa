@@ -347,13 +347,6 @@ public class JpaIntegrationTest {
     }
 
     @Test
-    public void toStringEmptyRoperty() {
-        assertThat(roperty.dump().toString(), is("Roperty{domains=[]\n}"));
-        roperty.addDomains("domain");
-        assertThat(roperty.dump().toString(), is("Roperty{domains=[domain]\n}"));
-    }
-
-    @Test
     public void domainResolverToNullIsIgnored() {
         DomainResolver domainResolver = new MapBackedDomainResolver().set("dom", "domVal");
         roperty.addDomains("dom", "dom2", "dom3");
