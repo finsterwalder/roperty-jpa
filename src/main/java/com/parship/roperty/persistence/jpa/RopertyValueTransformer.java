@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
+import java.util.Objects;
 
 public class RopertyValueTransformer {
 
@@ -33,7 +34,7 @@ public class RopertyValueTransformer {
             }
             Object value = ropertyValue.getValue();
             String changeSet = ropertyValue.getChangeSet();
-            if (changeSet == null) {
+            if (Objects.equals(changeSet, "")) {
                 keyValues.put(value, domainKeyParts);
             } else {
                 keyValues.putWithChangeSet(changeSet, value, domainKeyParts);

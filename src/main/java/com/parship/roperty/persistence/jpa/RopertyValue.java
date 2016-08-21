@@ -14,7 +14,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
-@Table(name = "roperty_value", indexes = {@Index(columnList = "key"), @Index(columnList = "key, pattern", unique=true)})
+@Table(name = "roperty_value", indexes = {@Index(columnList = "key"), @Index(columnList = "key, pattern, change_set", unique=true)})
 public class RopertyValue {
 
     @Id
@@ -28,7 +28,7 @@ public class RopertyValue {
     @Column(name = "value")
     private Serializable value;
 
-    @Column(name = "change_set")
+    @Column(name = "change_set", nullable = false)
     private String changeSet;
 
     @Column(name = "pattern", nullable = false)

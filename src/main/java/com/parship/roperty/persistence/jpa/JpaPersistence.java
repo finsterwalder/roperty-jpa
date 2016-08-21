@@ -114,6 +114,7 @@ public class JpaPersistence implements Persistence {
             throw new RopertyPersistenceException(String.format("Domain specific values were empty for key values with description '%s'", description));
         }
 
+        String transformedChangeSet = emptyWhenNull(changeSet);
         for (DomainSpecificValue domainSpecificValue : domainSpecificValues) {
 
             Object rawValue = domainSpecificValue.getValue();
@@ -122,39 +123,41 @@ public class JpaPersistence implements Persistence {
                 transactionManager.end();
                 throw new RopertyPersistenceException(String.format("Pattern for key '%s' must not be null", key));
             }
-            RopertyValue ropertyValue = ropertyValueDAO.loadRopertyValue(ropertyKey, patternStr);
-            if (ropertyValue == null) {
-                ropertyValue = new RopertyValue();
-                ropertyValue.setKey(ropertyKey);
-                if (rawValue != null && Serializable.class.isAssignableFrom(rawValue.getClass())) {
-                    Serializable value = (Serializable) rawValue;
-                    ropertyValue.setValue(value);
-                } else {
-                    throw new RopertyPersistenceException(String.format("Cannot serialize value '%s'", rawValue));
-                }
-                ropertyValue.setPattern(patternStr);
-                ropertyValue.setChangeSet(nullWhenEmpty(changeSet));
-                transactionManager.persist(ropertyValue);
-            } else {
-                boolean merge = false;
-                if (!Objects.equals(ropertyValue.getChangeSet(), nullWhenEmpty(changeSet))) {
-                    ropertyValue.setChangeSet(nullWhenEmpty(changeSet));
-                    merge = true;
-                }
-                if (!Objects.equals(ropertyValue.getValue(), rawValue)) {
-                    if (rawValue == null) {
-                        ropertyValue.setValue(null);
-                        merge = true;
-                    } else if (Serializable.class.isAssignableFrom(rawValue.getClass())) {
+            if (domainSpecificValue.changeSetIs(nullWhenEmpty(changeSet))) {
+                RopertyValue ropertyValue = ropertyValueDAO.loadRopertyValue(ropertyKey, patternStr, transformedChangeSet);
+                if (ropertyValue == null) {
+                    ropertyValue = new RopertyValue();
+                    ropertyValue.setKey(ropertyKey);
+                    if (rawValue != null && Serializable.class.isAssignableFrom(rawValue.getClass())) {
                         Serializable value = (Serializable) rawValue;
                         ropertyValue.setValue(value);
-                        merge = true;
                     } else {
                         throw new RopertyPersistenceException(String.format("Cannot serialize value '%s'", rawValue));
                     }
-                }
-                if (merge) {
-                    transactionManager.merge(ropertyValue);
+                    ropertyValue.setPattern(patternStr);
+                    ropertyValue.setChangeSet(transformedChangeSet);
+                    transactionManager.persist(ropertyValue);
+                } else {
+                    boolean merge = false;
+                    if (!Objects.equals(ropertyValue.getChangeSet(), transformedChangeSet)) {
+                        ropertyValue.setChangeSet(transformedChangeSet);
+                        merge = true;
+                    }
+                    if (!Objects.equals(ropertyValue.getValue(), rawValue)) {
+                        if (rawValue == null) {
+                            ropertyValue.setValue(null);
+                            merge = true;
+                        } else if (Serializable.class.isAssignableFrom(rawValue.getClass())) {
+                            Serializable value = (Serializable) rawValue;
+                            ropertyValue.setValue(value);
+                            merge = true;
+                        } else {
+                            throw new RopertyPersistenceException(String.format("Cannot serialize value '%s'", rawValue));
+                        }
+                    }
+                    if (merge) {
+                        transactionManager.merge(ropertyValue);
+                    }
                 }
             }
         }
@@ -162,9 +165,17 @@ public class JpaPersistence implements Persistence {
         transactionManager.end();
     }
 
-    private static String nullWhenEmpty(String changeSet) {
-        if (StringUtils.isEmpty(changeSet)) {
+    private static String nullWhenEmpty(String string) {
+        if (StringUtils.isEmpty(string)) {
             return null;
+        }
+
+        return string;
+    }
+
+    private static String emptyWhenNull(String changeSet) {
+        if (changeSet == null) {
+            return "";
         }
 
         return changeSet;
@@ -173,7 +184,6 @@ public class JpaPersistence implements Persistence {
     @Override
     public void remove(String key, KeyValues keyValues, String changeSet) {
         Validate.notBlank(key, "Key must not be empty");
-        Validate.notNull(keyValues, "Key values must not be null");
 
         transactionManager.begin();
 
@@ -189,28 +199,35 @@ public class JpaPersistence implements Persistence {
             throw new RopertyPersistenceException(String.format("Could not find any values for key '%s'. This is an inconsistency that should not happen.", key));
         }
 
-        Set<DomainSpecificValue> domainSpecificValues = keyValues.getDomainSpecificValues();
-        int numDomainSpecificValues = domainSpecificValues.size();
-        if (numDomainSpecificValues == 0) {
-            transactionManager.end();
-            throw new RopertyPersistenceException(String.format("Key values for key '%s' must contain domain specific values", key));
-        }
+        if (keyValues == null) {
+            for (RopertyValue value : ropertyValues) {
+                transactionManager.remove(value);
+            }
+            transactionManager.remove(ropertyKey);
+        } else {
+            Set<DomainSpecificValue> domainSpecificValues = keyValues.getDomainSpecificValues();
+            int numDomainSpecificValues = domainSpecificValues.size();
+            if (numDomainSpecificValues == 0) {
+                transactionManager.end();
+                throw new RopertyPersistenceException(String.format("Key values for key '%s' must contain domain specific values", key));
+            }
 
-        int numRemovedValues = 0;
+            int numRemovedValues = 0;
 
-        for (DomainSpecificValue domainSpecificValue : domainSpecificValues) {
-            for (Iterator<RopertyValue> itRopertyValue = ropertyValues.iterator(); itRopertyValue.hasNext(); ) {
-                RopertyValue ropertyValue = itRopertyValue.next();
-                if (ropertyValue.equals(domainSpecificValue)) {
-                    transactionManager.remove(ropertyValue);
-                    itRopertyValue.remove();
-                    numRemovedValues++;
+            for (DomainSpecificValue domainSpecificValue : domainSpecificValues) {
+                for (Iterator<RopertyValue> itRopertyValue = ropertyValues.iterator(); itRopertyValue.hasNext(); ) {
+                    RopertyValue ropertyValue = itRopertyValue.next();
+                    if (ropertyValue.equals(domainSpecificValue)) {
+                        transactionManager.remove(ropertyValue);
+                        itRopertyValue.remove();
+                        numRemovedValues++;
+                    }
                 }
             }
-        }
 
-        if (numDomainSpecificValues == numRemovedValues) {
-            transactionManager.remove(ropertyKey);
+            if (numDomainSpecificValues == numRemovedValues) {
+                transactionManager.remove(ropertyKey);
+            }
         }
 
         transactionManager.end();
@@ -243,7 +260,7 @@ public class JpaPersistence implements Persistence {
             throw new RopertyPersistenceException(String.format("Domain specific value '%s' for key '%s' must be serializable", value, key));
         }
 
-        RopertyValue ropertyValue = ropertyValueDAO.loadRopertyValue(ropertyKey, patternStr);
+        RopertyValue ropertyValue = ropertyValueDAO.loadRopertyValue(ropertyKey, patternStr, emptyWhenNull(changeSet));
         if (ropertyValue == null) {
             transactionManager.end();
             return;

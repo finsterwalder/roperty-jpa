@@ -50,7 +50,7 @@ public class RopertyValueDAO {
         return Collections.unmodifiableList(ropertyValues);
     }
 
-    public RopertyValue loadRopertyValue(RopertyKey ropertyKey, String pattern) {
+    public RopertyValue loadRopertyValue(RopertyKey ropertyKey, String pattern, String changeSet) {
         Validate.notNull(queryBuilderDelegate, "Query builder delegate must not be null");
         EntityManager entityManager = queryBuilderDelegate.createEntityManager();
         Validate.notNull(entityManager, "Entity manager must not be null");
@@ -63,7 +63,11 @@ public class RopertyValueDAO {
                 .withAttributeName("pattern")
                 .withComparison(pattern);
 
-        TypedQuery<RopertyValue> typedQuery = queryBuilderDelegate.equality(keyCriterion, patternCriterion);
+        EqualsCriterion<String> changeSetCriterion = new EqualsCriterion<String>()
+                .withAttributeName("changeSet")
+                .withComparison(changeSet);
+
+        TypedQuery<RopertyValue> typedQuery = queryBuilderDelegate.equality(keyCriterion, patternCriterion, changeSetCriterion);
         if (typedQuery == null) {
             entityManager.close();
             throw new RopertyPersistenceException(String.format("Typed query for equality of key '%s' must not be null", ropertyKey.getId()));

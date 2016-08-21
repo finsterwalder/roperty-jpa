@@ -19,18 +19,12 @@ import org.mockito.stubbing.Answer;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
@@ -54,12 +48,17 @@ public class JpaIntegrationTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
-        final JpaPersistence[] jpaPersistences = { new JpaPersistence(), new LazyJpaPersistence()};
-        final String[] persistenceUnits = { "hsqldb", "h2" };
+        final JpaPersistence[] jpaPersistences = {new JpaPersistence(), new LazyJpaPersistence()};
+        final String[] persistenceUnits = {
+                "h2"
+                ,"hsqldb"
+        };
         List<Object[]> result = new ArrayList<>(jpaPersistences.length);
 
-        for (int i = 0; i < jpaPersistences.length; i++) {
-            result.add(new Object[] { jpaPersistences[i], persistenceUnits[i] });
+        for (JpaPersistence jpaPersistence : jpaPersistences) {
+            for (String persistenceUnit : persistenceUnits) {
+                result.add(new Object[]{jpaPersistence, persistenceUnit});
+            }
         }
 
         return result;
@@ -105,7 +104,7 @@ public class JpaIntegrationTest {
         when(resolverMock.getDomainValue(anyString())).thenAnswer(new Answer<String>() {
             @Override
             public String answer(InvocationOnMock invocationOnMock) throws Throwable {
-                return (String)invocationOnMock.getArguments()[0];
+                return (String) invocationOnMock.getArguments()[0];
             }
         });
 
@@ -343,24 +342,6 @@ public class JpaIntegrationTest {
     }
 
     @Test
-    public void getKeyValues() {
-        String key = "key";
-        roperty.set(key, "value", null);
-        roperty.reload();
-        KeyValues keyValues = roperty.getKeyValues(key);
-        assertThat(keyValues.getDomainSpecificValues(), hasSize(1));
-        String value = keyValues.get(new ArrayList<String>(), null, null);
-        assertThat(value, is("value"));
-    }
-
-    @Test
-    public void getKeyValuesTrimsTheKey() {
-        roperty.set("key", "value", null);
-        roperty.reload();
-        assertThat(roperty.getKeyValues("  key"), notNullValue());
-    }
-
-    @Test
     public void ropertyWithResolverToString() {
         assertThat(ropertyWithResolver.toString(), is("RopertyWithResolver{roperty=Roperty{domains=[]}}"));
     }
@@ -370,27 +351,6 @@ public class JpaIntegrationTest {
         assertThat(roperty.dump().toString(), is("Roperty{domains=[]\n}"));
         roperty.addDomains("domain");
         assertThat(roperty.dump().toString(), is("Roperty{domains=[domain]\n}"));
-    }
-
-    @Test
-    public void dumpToStdout() throws UnsupportedEncodingException {
-        roperty.addDomains("dom1");
-        roperty.set("key", "value", "descr");
-        roperty.reload();
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        roperty.dump(new PrintStream(os));
-        String output = os.toString("UTF8");
-        assertThat(output, is("Roperty{domains=[dom1]\nKeyValues for \"key\": KeyValues{\n\tdescription=\"descr\"\n\tDomainSpecificValue{pattern=\"\", ordering=1, value=\"value\"}\n}\n}\n"));
-    }
-
-    @Test
-    public void iterate() {
-        roperty.set("key1", "value_1", "desc");
-        roperty.reload();
-        Map<String, KeyValues> keyValues = roperty.getKeyValues();
-        assertThat(keyValues.size(), is(1));
-        assertThat(keyValues.containsKey("key1"), is(true));
-        assertThat(keyValues.get("key1").<String>getDefaultValue(), is("value_1"));
     }
 
     @Test
@@ -462,7 +422,9 @@ public class JpaIntegrationTest {
         DomainResolver resolver = new MapBackedDomainResolver().addActiveChangeSets("changeSet");
         assertThat(roperty.<String>get("key", resolver), is("valueChangeSet"));
         assertThat(roperty.<String>get("otherKey", resolver), is("otherValueChangeSet"));
+        roperty.reload();
         roperty.removeChangeSet("changeSet");
+        roperty.reload();
         assertThat(roperty.<String>get("key", resolver), is("value"));
         assertThat(roperty.<String>get("otherKey", resolver), nullValue());
     }

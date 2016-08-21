@@ -24,8 +24,8 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class RopertyValueDAOTest {
 
-    public static final String KEY = "key";
-    public static final String PATTERN = "pattern";
+    private static final String PATTERN = "pattern";
+    private static final String CHANGE_SET = "change_set";
 
     @InjectMocks
     private RopertyValueDAO ropertyValueDAO;
@@ -93,25 +93,25 @@ public class RopertyValueDAOTest {
 
     @Test(expected = NullPointerException.class)
     public void failIfNoEntityManagerOnLoadingSingleRopertyValue() {
-        ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN);
+        ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET);
     }
 
     @Test(expected = RopertyPersistenceException.class)
     public void failIfTypedQueryIsNullOnLoadingSingleRopertyValue() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
 
-        ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN);
+        ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET);
     }
 
     @Test
     public void returnNullIfSingleRopertyValueNotFound() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
-        when(queryBuilderDelegate.equality(any(EqualsCriterion.class), any(EqualsCriterion.class))).thenReturn(typedQuery);
+        when(queryBuilderDelegate.equality(any(EqualsCriterion.class), any(EqualsCriterion.class), any(EqualsCriterion.class))).thenReturn(typedQuery);
 
-        RopertyValue result = ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN);
+        RopertyValue result = ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET);
 
         verify(queryBuilderDelegate).createEntityManager();
-        verify(queryBuilderDelegate).equality(any(EqualsCriterion.class), any(EqualsCriterion.class));
+        verify(queryBuilderDelegate).equality(any(EqualsCriterion.class), any(EqualsCriterion.class), any(EqualsCriterion.class));
         verify(typedQuery).getResultList();
         verify(entityManager).close();
         assertThat(result, nullValue());
@@ -120,13 +120,13 @@ public class RopertyValueDAOTest {
     @Test
     public void returnSingleRopertyValue() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
-        when(queryBuilderDelegate.equality(any(EqualsCriterion.class), any(EqualsCriterion.class))).thenReturn(typedQuery);
+        when(queryBuilderDelegate.equality(any(EqualsCriterion.class), any(EqualsCriterion.class), any(EqualsCriterion.class))).thenReturn(typedQuery);
         when(typedQuery.getResultList()).thenReturn(Arrays.asList(ropertyValue));
 
-        RopertyValue result = ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN);
+        RopertyValue result = ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET);
 
         verify(queryBuilderDelegate).createEntityManager();
-        verify(queryBuilderDelegate).equality(any(EqualsCriterion.class), any(EqualsCriterion.class));
+        verify(queryBuilderDelegate).equality(any(EqualsCriterion.class), any(EqualsCriterion.class), any(EqualsCriterion.class));
         verify(typedQuery).getResultList();
         verify(entityManager).close();
         assertThat(result, is(ropertyValue));

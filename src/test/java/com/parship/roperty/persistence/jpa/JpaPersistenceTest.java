@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.Serializable;
@@ -20,15 +19,22 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 @RunWith(MockitoJUnitRunner.class)
 public class JpaPersistenceTest {
 
-    public static final String KEY = "key";
-    public static final String CHANGE_SET = "changeSet";
-    public static final String DOMAIN_KEY_PART_1 = "domainKeyPart1";
-    public static final String DOMAIN_KEY_PART_2 = "domainKeyPart2";
-    public static final String PATTERN = DOMAIN_KEY_PART_1 + '|' + DOMAIN_KEY_PART_2;
-    public static final String DESCRIPTION = "description";
+    private static final String KEY = "key";
+    private static final String CHANGE_SET = "changeSet";
+    private static final String DOMAIN_KEY_PART_1 = "domainKeyPart1";
+    private static final String DOMAIN_KEY_PART_2 = "domainKeyPart2";
+    private static final String PATTERN = DOMAIN_KEY_PART_1 + '|' + DOMAIN_KEY_PART_2;
+    private static final String DESCRIPTION = "description";
 
     @InjectMocks
     private JpaPersistence jpaPersistence;
@@ -71,104 +77,104 @@ public class JpaPersistenceTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void loadShouldFailNullIfNoRopertyValuesFound() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
         KeyValues keyValues = jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
         Assert.assertThat(keyValues, Matchers.nullValue());
     }
 
     @Test(expected = NullPointerException.class)
     public void failIfRopertyValuePatternIsNull() throws Exception {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
 
         jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
     }
 
     @Test(expected = NullPointerException.class)
     public void failIfKeyValuesIsNull() throws Exception {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
-        Mockito.when(ropertyValue.getPattern()).thenReturn("pattern");
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(ropertyValue.getPattern()).thenReturn("pattern");
 
         jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
     }
 
     @Test(expected = NullPointerException.class)
     public void failIfRopertyValueHasNoKey() throws Exception {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
-        Mockito.when(ropertyValue.getPattern()).thenReturn("pattern");
-        Mockito.when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(ropertyValue.getPattern()).thenReturn("pattern");
+        when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
 
         jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
     }
 
     @Test
     public void loadShouldReturnKeyValues() throws Exception {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
-        Mockito.when(ropertyValue.getPattern()).thenReturn(PATTERN);
-        Mockito.when(ropertyValue.getKey()).thenReturn(ropertyKey);
-        Mockito.when(ropertyValue.getChangeSet()).thenReturn(CHANGE_SET);
-        Mockito.when(ropertyValue.getValue()).thenReturn(value);
-        Mockito.when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
-        Mockito.when(ropertyKey.getDescription()).thenReturn(DESCRIPTION);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(ropertyValue.getPattern()).thenReturn(PATTERN);
+        when(ropertyValue.getKey()).thenReturn(ropertyKey);
+        when(ropertyValue.getChangeSet()).thenReturn(CHANGE_SET);
+        when(ropertyValue.getValue()).thenReturn(value);
+        when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
+        when(ropertyKey.getDescription()).thenReturn(DESCRIPTION);
 
         KeyValues result = jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
-        Mockito.verify(keyValuesFactory).create(domainSpecificValueFactory);
-        Mockito.verify(ropertyKey).getDescription();
-        Mockito.verify(ropertyValue).getPattern();
-        Mockito.verify(ropertyValue).getValue();
-        Mockito.verify(ropertyValue).getKey();
-        Mockito.verify(ropertyValue).getChangeSet();
-        Mockito.verify(keyValues).putWithChangeSet(CHANGE_SET, value, DOMAIN_KEY_PART_1, DOMAIN_KEY_PART_2);
-        Mockito.verify(keyValues).setDescription(DESCRIPTION);
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
+        verify(keyValuesFactory).create(domainSpecificValueFactory);
+        verify(ropertyKey).getDescription();
+        verify(ropertyValue).getPattern();
+        verify(ropertyValue).getValue();
+        verify(ropertyValue).getKey();
+        verify(ropertyValue).getChangeSet();
+        verify(keyValues).putWithChangeSet(CHANGE_SET, value, DOMAIN_KEY_PART_1, DOMAIN_KEY_PART_2);
+        verify(keyValues).setDescription(DESCRIPTION);
         Assert.assertThat(result, Matchers.is(keyValues));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void failIfLoadAllAndNotKeyGiven() throws Exception {
-        Mockito.when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(Collections.singletonList(ropertyKey));
+        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(Collections.singletonList(ropertyKey));
         jpaPersistence.loadAll(keyValuesFactory, domainSpecificValueFactory);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void failIfNoValuesFound() throws Exception {
-        Mockito.when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(Collections.singletonList(ropertyKey));
-        Mockito.when(ropertyKey.getId()).thenReturn(KEY);
+        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(Collections.singletonList(ropertyKey));
+        when(ropertyKey.getId()).thenReturn(KEY);
 
         jpaPersistence.loadAll(keyValuesFactory, domainSpecificValueFactory);
     }
 
     @Test
     public void loadAll() throws Exception {
-        Mockito.when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(Collections.singletonList(ropertyKey));
-        Mockito.when(ropertyKey.getId()).thenReturn(KEY);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
-        Mockito.when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
-        Mockito.when(ropertyValue.getPattern()).thenReturn(PATTERN);
-        Mockito.when(ropertyValue.getKey()).thenReturn(ropertyKey);
-        Mockito.when(ropertyValue.getChangeSet()).thenReturn(CHANGE_SET);
-        Mockito.when(ropertyValue.getValue()).thenReturn(value);
-        Mockito.when(ropertyKey.getDescription()).thenReturn(DESCRIPTION);
+        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(Collections.singletonList(ropertyKey));
+        when(ropertyKey.getId()).thenReturn(KEY);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
+        when(ropertyValue.getPattern()).thenReturn(PATTERN);
+        when(ropertyValue.getKey()).thenReturn(ropertyKey);
+        when(ropertyValue.getChangeSet()).thenReturn(CHANGE_SET);
+        when(ropertyValue.getValue()).thenReturn(value);
+        when(ropertyKey.getDescription()).thenReturn(DESCRIPTION);
 
         Map<String, KeyValues> result = jpaPersistence.loadAll(keyValuesFactory, domainSpecificValueFactory);
 
-        Mockito.verify(ropertyKeyDAO).loadAllRopertyKeys();
-        Mockito.verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
-        Mockito.verify(keyValuesFactory).create(domainSpecificValueFactory);
-        Mockito.verify(ropertyKey, Mockito.times(2)).getId();
-        Mockito.verify(ropertyKey).getDescription();
-        Mockito.verify(ropertyValue).getPattern();
-        Mockito.verify(ropertyValue).getKey();
-        Mockito.verify(ropertyValue).getValue();
-        Mockito.verify(ropertyValue).getChangeSet();
-        Mockito.verify(ropertyValue).getValue();
-        Mockito.verify(keyValues).putWithChangeSet(CHANGE_SET, value, DOMAIN_KEY_PART_1, DOMAIN_KEY_PART_2);
-        Mockito.verify(keyValues).setDescription(DESCRIPTION);
+        verify(ropertyKeyDAO).loadAllRopertyKeys();
+        verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
+        verify(keyValuesFactory).create(domainSpecificValueFactory);
+        verify(ropertyKey, times(2)).getId();
+        verify(ropertyKey).getDescription();
+        verify(ropertyValue).getPattern();
+        verify(ropertyValue).getKey();
+        verify(ropertyValue).getValue();
+        verify(ropertyValue).getChangeSet();
+        verify(ropertyValue).getValue();
+        verify(keyValues).putWithChangeSet(CHANGE_SET, value, DOMAIN_KEY_PART_1, DOMAIN_KEY_PART_2);
+        verify(keyValues).setDescription(DESCRIPTION);
         Assert.assertThat(result.get(KEY), Matchers.is(keyValues));
         Assert.assertThat(result.size(), Matchers.is(1));
     }
@@ -189,39 +195,39 @@ public class JpaPersistenceTest {
 
         Map<String, KeyValues> result = jpaPersistence.reload(keyValuesMap, keyValuesFactory, domainSpecificValueFactory);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
 
         Assert.assertThat(result.isEmpty(), Matchers.is(true));
     }
 
     @Test
     public void reloadingReplacesOldValueWithNewValue() {
-        KeyValues oldKeyValues = Mockito.mock(KeyValues.class);
+        KeyValues oldKeyValues = mock(KeyValues.class);
         Map<String, KeyValues> keyValuesMap = new HashMap<>();
         keyValuesMap.put(KEY, oldKeyValues);
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue));
-        Mockito.when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
-        Mockito.when(ropertyValue.getKey()).thenReturn(ropertyKey);
-        Mockito.when(ropertyValue.getPattern()).thenReturn(PATTERN);
-        Mockito.when(ropertyValue.getChangeSet()).thenReturn(CHANGE_SET);
-        Mockito.when(ropertyValue.getValue()).thenReturn(value);
-        Mockito.when(ropertyKey.getDescription()).thenReturn(DESCRIPTION);
-        Mockito.when(ropertyKey.getId()).thenReturn(KEY);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue));
+        when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
+        when(ropertyValue.getKey()).thenReturn(ropertyKey);
+        when(ropertyValue.getPattern()).thenReturn(PATTERN);
+        when(ropertyValue.getChangeSet()).thenReturn(CHANGE_SET);
+        when(ropertyValue.getValue()).thenReturn(value);
+        when(ropertyKey.getDescription()).thenReturn(DESCRIPTION);
+        when(ropertyKey.getId()).thenReturn(KEY);
 
         Map<String, KeyValues> result = jpaPersistence.reload(keyValuesMap, keyValuesFactory, domainSpecificValueFactory);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
-        Mockito.verify(keyValuesFactory).create(domainSpecificValueFactory);
-        Mockito.verify(ropertyValue).getKey();
-        Mockito.verify(ropertyValue).getPattern();
-        Mockito.verify(ropertyValue).getChangeSet();
-        Mockito.verify(ropertyValue).getValue();
-        Mockito.verify(ropertyKey).getDescription();
-        Mockito.verify(ropertyKey).getId();
-        Mockito.verify(keyValues).putWithChangeSet(CHANGE_SET, value, DOMAIN_KEY_PART_1, DOMAIN_KEY_PART_2);
-        Mockito.verify(keyValues).setDescription(DESCRIPTION);
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
+        verify(keyValuesFactory).create(domainSpecificValueFactory);
+        verify(ropertyValue).getKey();
+        verify(ropertyValue).getPattern();
+        verify(ropertyValue).getChangeSet();
+        verify(ropertyValue).getValue();
+        verify(ropertyKey).getDescription();
+        verify(ropertyKey).getId();
+        verify(keyValues).putWithChangeSet(CHANGE_SET, value, DOMAIN_KEY_PART_1, DOMAIN_KEY_PART_2);
+        verify(keyValues).setDescription(DESCRIPTION);
         Assert.assertThat(result.get(KEY), Matchers.is(keyValues));
         Assert.assertThat(result.get(KEY), Matchers.not(Matchers.is(oldKeyValues)));
         Assert.assertThat(result.size(), Matchers.is(1));
@@ -234,206 +240,227 @@ public class JpaPersistenceTest {
 
     @Test(expected = RopertyPersistenceException.class)
     public void failIfValueIsNull() {
-        Mockito.when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
+        when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
 
         jpaPersistence.store(KEY, keyValues, CHANGE_SET);
     }
 
     @Test(expected = RopertyPersistenceException.class)
     public void valueMustBeSerializable() {
-        Mockito.when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
-        Mockito.when(domainSpecificValue.getValue()).thenReturn(new Object());
+        when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
+        when(domainSpecificValue.getValue()).thenReturn(new Object());
 
         jpaPersistence.store(KEY, keyValues, CHANGE_SET);
     }
 
     @Test
     public void storeShouldPersistValues() {
-        Mockito.when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
-        Mockito.when(domainSpecificValue.getValue()).thenReturn(value);
-        Mockito.when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+        when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
+        when(domainSpecificValue.getValue()).thenReturn(value);
+        when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
 
         jpaPersistence.store(KEY, keyValues, CHANGE_SET);
 
-        Mockito.verify(keyValues).getDescription();
-        Mockito.verify(keyValues).getDomainSpecificValues();
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(transactionManager).begin();
-        Mockito.verify(transactionManager, Mockito.times(2)).persist(Matchers.any(RopertyKey.class));
-        Mockito.verify(transactionManager, Mockito.times(2)).persist(Matchers.any(RopertyValue.class));
-        Mockito.verify(transactionManager).end();
-        Mockito.verify(domainSpecificValue).getValue();
-        Mockito.verify(domainSpecificValue).getPatternStr();
+        verify(keyValues).getDescription();
+        verify(keyValues).getDomainSpecificValues();
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(transactionManager).begin();
+        verify(transactionManager).persist(any(RopertyKey.class));
+        verify(transactionManager).persist(any(RopertyValue.class));
+        verify(transactionManager).end();
+        verify(domainSpecificValue).getValue();
+        verify(domainSpecificValue).getPatternStr();
 
-        Mockito.verifyNoMoreInteractions(transactionManager);
+        verifyNoMoreInteractions(transactionManager);
+    }
+
+    @Test
+    public void storeWithNullChangeSetShouldPersistValues() {
+        when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
+        when(domainSpecificValue.getValue()).thenReturn(value);
+        when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+
+        jpaPersistence.store(KEY, keyValues, null);
+
+        verify(keyValues).getDescription();
+        verify(keyValues).getDomainSpecificValues();
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(transactionManager).begin();
+        verify(transactionManager).persist(any(RopertyKey.class));
+        verify(transactionManager).persist(any(RopertyValue.class));
+        verify(transactionManager).end();
+        verify(domainSpecificValue).getValue();
+        verify(domainSpecificValue).getPatternStr();
+
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test
     public void removeNonExistingKeyShouldDoNothing() {
         jpaPersistence.remove(KEY, keyValues, CHANGE_SET);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
     }
 
     @Test(expected = RopertyPersistenceException.class)
     public void removingKeyWithoutValuesShouldNotHappen() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
 
         jpaPersistence.remove(KEY, keyValues, CHANGE_SET);
     }
 
     @Test(expected = RopertyPersistenceException.class)
     public void failIfNoDomainSpecificValuesOnRemoval() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue));
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue));
 
         jpaPersistence.remove(KEY, keyValues, CHANGE_SET);
     }
 
     @Test
     public void removeNothingIfNoValueFound() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue));
-        Mockito.when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue));
+        when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
 
         jpaPersistence.remove(KEY, keyValues, CHANGE_SET);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
-        Mockito.verify(keyValues).getDomainSpecificValues();
-        Mockito.verify(ropertyValue).equals(domainSpecificValue);
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
+        verify(keyValues).getDomainSpecificValues();
+        verify(ropertyValue).equals(domainSpecificValue);
     }
 
     @Test
     public void removingKeyWithOnlyOneValueShouldRemoveKeyAsWell() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue));
-        Mockito.when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
-        Mockito.when(ropertyValue.equals(domainSpecificValue)).thenReturn(true);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue));
+        when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
+        when(ropertyValue.equals(domainSpecificValue)).thenReturn(true);
 
         jpaPersistence.remove(KEY, keyValues, CHANGE_SET);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
-        Mockito.verify(keyValues).getDomainSpecificValues();
-        Mockito.verify(ropertyValue).equals(domainSpecificValue);
-        Mockito.verify(transactionManager).begin();
-        Mockito.verify(transactionManager).remove(ropertyValue);
-        Mockito.verify(transactionManager).remove(ropertyKey);
-        Mockito.verify(transactionManager).end();
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
+        verify(keyValues).getDomainSpecificValues();
+        verify(ropertyValue).equals(domainSpecificValue);
+        verify(transactionManager).begin();
+        verify(transactionManager).remove(ropertyValue);
+        verify(transactionManager).remove(ropertyKey);
+        verify(transactionManager).end();
 
-        Mockito.verifyNoMoreInteractions(transactionManager);
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test
     public void removingKeyWithMultipleValuesAndJustOneValueRemovedShouldOnlyRemoveValues() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        RopertyValue ropertyValue2 = Mockito.mock(RopertyValue.class);
-        Mockito.when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue, ropertyValue2));
-        DomainSpecificValue domainSpecificValue2 = Mockito.mock(DomainSpecificValue.class);
-        Mockito.when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue, domainSpecificValue2)));
-        Mockito.when(ropertyValue.equals(domainSpecificValue)).thenReturn(true);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        RopertyValue ropertyValue2 = mock(RopertyValue.class);
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Arrays.asList(ropertyValue, ropertyValue2));
+        DomainSpecificValue domainSpecificValue2 = mock(DomainSpecificValue.class);
+        when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue, domainSpecificValue2)));
+        when(ropertyValue.equals(domainSpecificValue)).thenReturn(true);
 
         jpaPersistence.remove(KEY, keyValues, CHANGE_SET);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
-        Mockito.verify(keyValues).getDomainSpecificValues();
-        Mockito.verify(ropertyValue).equals(domainSpecificValue);
-        Mockito.verify(ropertyValue2).equals(domainSpecificValue);
-        Mockito.verify(ropertyValue2).equals(domainSpecificValue2);
-        Mockito.verify(transactionManager).begin();
-        Mockito.verify(transactionManager).remove(ropertyValue);
-        Mockito.verify(transactionManager).end();
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyValueDAO).loadRopertyValues(ropertyKey);
+        verify(keyValues).getDomainSpecificValues();
+        verify(ropertyValue).equals(domainSpecificValue);
+        verify(ropertyValue2).equals(domainSpecificValue);
+        verify(ropertyValue2).equals(domainSpecificValue2);
+        verify(transactionManager).begin();
+        verify(transactionManager).remove(ropertyValue);
+        verify(transactionManager).end();
 
-        Mockito.verifyNoMoreInteractions(transactionManager);
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test
     public void shouldDoNothingIfKeyNotFoundOnRemoval() {
         jpaPersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(transactionManager).begin();
-        Mockito.verify(transactionManager).end();
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(transactionManager).begin();
+        verify(transactionManager).end();
 
-        Mockito.verifyNoMoreInteractions(transactionManager);
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test(expected = RopertyPersistenceException.class)
     public void failIfRemovalOfValueWithoutPattern() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
 
         jpaPersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
     }
 
     @Test(expected = RopertyPersistenceException.class)
     public void failIfValueIsNullOnRemoval() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
 
         jpaPersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
     }
 
     @Test
     public void doNothingIfNotRopertyValueFoundForExistingKey() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
-        Mockito.when(domainSpecificValue.getValue()).thenReturn(value);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+        when(domainSpecificValue.getValue()).thenReturn(value);
 
         jpaPersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN);
-        Mockito.verify(transactionManager).begin();
-        Mockito.verify(transactionManager).end();
-        Mockito.verify(domainSpecificValue).getPatternStr();
-        Mockito.verify(domainSpecificValue).getValue();
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET);
+        verify(transactionManager).begin();
+        verify(transactionManager).end();
+        verify(domainSpecificValue).getPatternStr();
+        verify(domainSpecificValue).getValue();
 
-        Mockito.verifyNoMoreInteractions(transactionManager);
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test
     public void removeExistingRopertyValue() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
-        Mockito.when(domainSpecificValue.getValue()).thenReturn(value);
-        Mockito.when(ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN)).thenReturn(ropertyValue);
-        Mockito.when(ropertyValueDAO.getNumberOfValues(ropertyKey)).thenReturn(2L);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+        when(domainSpecificValue.getValue()).thenReturn(value);
+        when(ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET)).thenReturn(ropertyValue);
+        when(ropertyValueDAO.getNumberOfValues(ropertyKey)).thenReturn(2L);
 
         jpaPersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN);
-        Mockito.verify(transactionManager).begin();
-        Mockito.verify(transactionManager).remove(ropertyValue);
-        Mockito.verify(transactionManager).end();
-        Mockito.verify(domainSpecificValue).getPatternStr();
-        Mockito.verify(domainSpecificValue).getValue();
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET);
+        verify(transactionManager).begin();
+        verify(transactionManager).remove(ropertyValue);
+        verify(transactionManager).end();
+        verify(domainSpecificValue).getPatternStr();
+        verify(domainSpecificValue).getValue();
 
-        Mockito.verifyNoMoreInteractions(transactionManager);
+        verifyNoMoreInteractions(transactionManager);
     }
 
     @Test
     public void removeExistingRopertyValueAndKey() {
-        Mockito.when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        Mockito.when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
-        Mockito.when(domainSpecificValue.getValue()).thenReturn(value);
-        Mockito.when(ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN)).thenReturn(ropertyValue);
-        Mockito.when(ropertyValueDAO.getNumberOfValues(ropertyKey)).thenReturn(1L);
+        when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
+        when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+        when(domainSpecificValue.getValue()).thenReturn(value);
+        when(ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET)).thenReturn(ropertyValue);
+        when(ropertyValueDAO.getNumberOfValues(ropertyKey)).thenReturn(1L);
 
         jpaPersistence.remove(KEY, domainSpecificValue, CHANGE_SET);
 
-        Mockito.verify(ropertyKeyDAO).loadRopertyKey(KEY);
-        Mockito.verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN);
-        Mockito.verify(transactionManager).begin();
-        Mockito.verify(transactionManager).remove(ropertyValue);
-        Mockito.verify(transactionManager).remove(ropertyKey);
-        Mockito.verify(transactionManager).end();
-        Mockito.verify(domainSpecificValue).getPatternStr();
-        Mockito.verify(domainSpecificValue).getValue();
+        verify(ropertyKeyDAO).loadRopertyKey(KEY);
+        verify(ropertyValueDAO).loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET);
+        verify(transactionManager).begin();
+        verify(transactionManager).remove(ropertyValue);
+        verify(transactionManager).remove(ropertyKey);
+        verify(transactionManager).end();
+        verify(domainSpecificValue).getPatternStr();
+        verify(domainSpecificValue).getValue();
 
-        Mockito.verifyNoMoreInteractions(transactionManager);
+        verifyNoMoreInteractions(transactionManager);
     }
 
 }
