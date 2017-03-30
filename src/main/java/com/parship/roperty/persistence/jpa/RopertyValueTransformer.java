@@ -9,12 +9,12 @@ import org.apache.commons.lang3.Validate;
 import java.util.List;
 import java.util.Objects;
 
-public class RopertyValueTransformer {
+class RopertyValueTransformer {
 
     private KeyValuesFactory keyValuesFactory;
     private DomainSpecificValueFactory domainSpecificValueFactory;
 
-    public KeyValues transformValues(List<RopertyValue> ropertyValues) {
+    KeyValues transformValues(List<RopertyValue> ropertyValues) {
         if (ropertyValues.isEmpty()) {
             return null;
         }
@@ -48,12 +48,12 @@ public class RopertyValueTransformer {
     }
 
 
-    public RopertyValueTransformer withKeyValuesFactory(KeyValuesFactory keyValuesFactory) {
+    RopertyValueTransformer withKeyValuesFactory(KeyValuesFactory keyValuesFactory) {
         this.keyValuesFactory = keyValuesFactory;
         return this;
     }
 
-    public RopertyValueTransformer withDomainSpecificValueFactory(DomainSpecificValueFactory domainSpecificValueFactory) {
+    RopertyValueTransformer withDomainSpecificValueFactory(DomainSpecificValueFactory domainSpecificValueFactory) {
         this.domainSpecificValueFactory = domainSpecificValueFactory;
         return this;
     }

@@ -21,7 +21,7 @@ public class TransactionManager {
         this.entityManagerFactory = entityManagerFactory;
     }
 
-    public void begin() {
+    void begin() {
         Validate.notNull(entityManagerFactory, "Entity manager factory must not be null");
         entityManager = entityManagerFactory.createEntityManager();
         Validate.notNull(entityManager, "Entity manager must not be null");
@@ -31,7 +31,7 @@ public class TransactionManager {
         transactionStarted = true;
     }
 
-    public void end() {
+    void end() {
         Validate.isTrue(transactionStarted, "No transaction started yet. You need to call begin first");
         Validate.notNull(transaction, "Transaction must not be null");
         Validate.notNull(entityManager, "Entity manager must not be null");
@@ -40,28 +40,21 @@ public class TransactionManager {
         transactionStarted = false;
     }
 
-    public void merge(Object object) {
+    void merge(Object object) {
         Validate.isTrue(transactionStarted, "No transaction started yet. You need to call begin first");
         Validate.notNull(entityManager, "Entity manager must not be null");
         Validate.notNull(object, "Object must not be null");
         entityManager.merge(object);
     }
 
-    public boolean contains(Object object) {
-        Validate.isTrue(transactionStarted, "No transaction started yet. You need to call begin first");
-        Validate.notNull(entityManager, "Entity manager must not be null");
-        Validate.notNull(object, "Object must not be null");
-        return entityManager.contains(object);
-    }
-
-    public void persist(Object object) {
+    void persist(Object object) {
         Validate.isTrue(transactionStarted, "No transaction started yet. You need to call begin first");
         Validate.notNull(entityManager, "Entity manager must not be null");
         Validate.notNull(object, "Object must not be null");
         entityManager.persist(object);
     }
 
-    public void remove(Object object) {
+    void remove(Object object) {
         Validate.isTrue(transactionStarted, "No transaction started yet. You need to call begin first");
         Validate.notNull(entityManager, "Entity manager must not be null");
         Validate.notNull(object, "Object must not be null");

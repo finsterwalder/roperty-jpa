@@ -14,7 +14,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
-@Table(name = "roperty_value", indexes = {@Index(columnList = "key"), @Index(columnList = "key, pattern, change_set", unique=true)})
+@Table(name = "roperty_value", indexes = {@Index(columnList = "key"), @Index(columnList = "key, pattern, change_set", unique = true)})
 public class RopertyValue {
 
     @Id

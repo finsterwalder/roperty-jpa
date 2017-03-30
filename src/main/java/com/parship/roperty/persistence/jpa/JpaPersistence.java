@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -294,6 +295,19 @@ public class JpaPersistence implements Persistence {
         }
 
         transactionManager.end();
+    }
+
+    @Override
+    public List<String> findKeys(String substring) {
+        return ropertyKeyDAO.findKeys(substring);
+    }
+
+    @Override
+    public List<String> getAllKeys() {
+        List<RopertyKey> ropertyKeys = ropertyKeyDAO.loadAllRopertyKeys();
+        List<String> keys = new ArrayList<>(ropertyKeys.size());
+        ropertyKeys.forEach(ropertyKey -> keys.add(ropertyKey.getId()));
+        return keys;
     }
 
     public void setTransactionManager(TransactionManager transactionManager) {

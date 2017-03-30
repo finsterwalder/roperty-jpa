@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.persistence.EntityManager;
@@ -27,11 +28,17 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class QueryBuilderTest {
 
+    private static final String ATTRIBUTE_NAME = "attributeName";
+    public static final String EXPRESSION = "expression";
+
     @InjectMocks
     private QueryBuilder<Long> queryBuilder;
 
     @Mock
     private EqualsCriterion equalsCriterion;
+
+    @Mock
+    private LikeCriterion likeCriterion;
 
     @Mock
     private EntityManager entityManager;
@@ -58,6 +65,9 @@ public class QueryBuilderTest {
     private Path<?> path;
 
     @Mock
+    private Path<String> stringPath;
+
+    @Mock
     private Predicate restriction;
 
     @Mock
@@ -79,10 +89,10 @@ public class QueryBuilderTest {
 
     @Test
     public void fetchingEntityByAttributeEqualityShouldReturnTypedQuery() throws Exception {
-        queryBuilder.withResultClass(Long.class);
-        when(equalsCriterion.getAttributeName()).thenReturn("attributeName");
+        queryBuilder.setResultClass(Long.class);
+        when(equalsCriterion.getAttributeName()).thenReturn(ATTRIBUTE_NAME);
         when(equalsCriterion.getComparison()).thenReturn(1L);
-        when(entityType.getSingularAttribute("attributeName")).thenReturn(singularAttribute);
+        when(entityType.getSingularAttribute(ATTRIBUTE_NAME)).thenReturn(singularAttribute);
         when(criteriaBuilder.equal(path, 1L)).thenReturn(restriction);
         when(criteriaBuilder.and(restriction)).thenReturn(predicate);
         when(root.get(singularAttribute)).thenReturn(path);
@@ -90,12 +100,38 @@ public class QueryBuilderTest {
         TypedQuery<Long> typedQuery = queryBuilder.equality(equalsCriterion);
 
         verify(equalsCriterion, times(2)).getAttributeName();
-        verify(entityType).getSingularAttribute("attributeName");
+        verify(entityType).getSingularAttribute(ATTRIBUTE_NAME);
         verify(root).get(singularAttribute);
         verify(equalsCriterion, times(2)).getComparison();
         verify(criteriaBuilder).equal(path, 1L);
         verify(criteriaQuery).where(predicate);
         verifyMocks();
+        assertThat(typedQuery, is(this.typedQuery));
+    }
+
+    @Test
+    public void returnsTypedQueryWhenFetchingEntityByAttribute() throws Exception {
+        queryBuilder.setResultClass(Long.class);
+        when(likeCriterion.getAttributeName()).thenReturn(ATTRIBUTE_NAME);
+        when(likeCriterion.getExpression()).thenReturn(EXPRESSION);
+        when(entityType.getSingularAttribute(ATTRIBUTE_NAME, String.class)).thenReturn(singularAttribute);
+        when(criteriaBuilder.like(stringPath, EXPRESSION)).thenReturn(restriction);
+        when(criteriaBuilder.and(restriction)).thenReturn(predicate);
+        when(criteriaBuilder.lower(stringPath)).thenReturn(stringPath);
+        when(root.get(singularAttribute)).thenReturn(stringPath);
+
+        TypedQuery<Long> typedQuery = queryBuilder.likeliness(likeCriterion);
+
+        verify(likeCriterion, times(2)).getAttributeName();
+        verify(likeCriterion, times(2)).getExpression();
+        verify(entityType).getSingularAttribute(ATTRIBUTE_NAME, String.class);
+        verify(root).get(singularAttribute);
+        verify(criteriaBuilder).like(stringPath, EXPRESSION);
+        verify(criteriaBuilder).lower(stringPath);
+        verify(criteriaBuilder).and(Mockito.any(Predicate[].class));
+        verify(criteriaQuery).where(predicate);
+        verifyMocks();
+
         assertThat(typedQuery, is(this.typedQuery));
     }
 
@@ -116,7 +152,7 @@ public class QueryBuilderTest {
 
     @Test
     public void fetchingAllEntitiesShouldReturnTypedQuery() throws Exception {
-        queryBuilder.withResultClass(Long.class);
+        queryBuilder.setResultClass(Long.class);
         TypedQuery<Long> typedQuery = queryBuilder.all();
 
         verifyMocks();

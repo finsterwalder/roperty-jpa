@@ -14,8 +14,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -24,6 +22,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -86,7 +85,7 @@ public class JpaIntegrationTest {
 
         QueryBuilderDelegate<RopertyValue> valueQueryBuilderDelegate = new QueryBuilderDelegate<>();
         valueQueryBuilderDelegate.setEntityManagerFactory(entityManagerFactory);
-        valueQueryBuilderDelegate.setQueryBuilder(new QueryBuilder<RopertyValue>());
+        valueQueryBuilderDelegate.setQueryBuilder(new QueryBuilder<>());
         valueQueryBuilderDelegate.setResultClass(RopertyValue.class);
         RopertyValueDAO ropertyValueDAO = new RopertyValueDAO();
         ropertyValueDAO.setQueryBuilderDelegate(valueQueryBuilderDelegate);
@@ -100,13 +99,8 @@ public class JpaIntegrationTest {
                 .set("domain1", "domainValue1")
                 .set("domain2", "domainValue2");
 
-        when(resolverMock.getActiveChangeSets()).thenReturn(new ArrayList<String>());
-        when(resolverMock.getDomainValue(anyString())).thenAnswer(new Answer<String>() {
-            @Override
-            public String answer(InvocationOnMock invocationOnMock) throws Throwable {
-                return (String) invocationOnMock.getArguments()[0];
-            }
-        });
+        when(resolverMock.getActiveChangeSets()).thenReturn(new ArrayList<>());
+        when(resolverMock.getDomainValue(anyString())).thenAnswer(invocationOnMock -> invocationOnMock.getArguments()[0]);
 
         ropertyWithResolver = new RopertyWithResolver(roperty, resolverMock);
     }
@@ -422,5 +416,12 @@ public class JpaIntegrationTest {
         assertThat(roperty.<String>get("otherKey", resolver), nullValue());
     }
 
+    @Test
+    public void findsAKeyAccordingToSubstring() {
+        String key = "somemultiwordkey";
+        roperty.set(key, "value", "descr");
+        List<String> keys = roperty.findKeys("MULTI");
+        assertThat(keys, contains(key));
+    }
 
 }

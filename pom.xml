@@ -8,8 +8,8 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.parship</groupId>
     <artifactId>roperty-jpa</artifactId>
+    <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
 
     <name>Roperty JPA</name>
     <description>Persistence implementation for Roperty</description>
@@ -31,7 +31,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.7</java.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <developers>
@@ -46,7 +47,7 @@
         <dependency>
             <groupId>com.parship</groupId>
             <artifactId>roperty</artifactId>
-            <version>0.13-SNAPSHOT</version>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
@@ -61,7 +62,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>5.2.1.Final</version>
+            <version>5.2.4.Final</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -79,7 +80,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.4.1209.jre7</version>
+            <version>42.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -110,8 +111,6 @@
                 <version>3.5.1</version>
                 <inherited>true</inherited>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
                     <fork>true</fork>
                     <showDeprecation>true</showDeprecation>
                     <showWarnings>true</showWarnings>

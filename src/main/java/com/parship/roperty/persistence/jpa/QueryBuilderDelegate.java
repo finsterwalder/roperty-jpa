@@ -22,31 +22,36 @@ public class QueryBuilderDelegate<T> {
         this.queryBuilder = queryBuilder;
     }
 
-    public EntityManager createEntityManager() {
+    EntityManager createEntityManager() {
         Validate.notNull(entityManagerFactory, "Entity manager factory must not be null");
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         queryBuilder.withEntityManager(entityManager);
         return entityManager;
     }
 
-    public <Y> TypedQuery<T> equality(EqualsCriterion... equalsCriteria) {
+    TypedQuery<T> equality(EqualsCriterion<?>... equalsCriteria) {
         Validate.notEmpty(equalsCriteria, "Equals criteria must not be empty");
         return queryBuilder.equality(equalsCriteria);
     }
 
-    public TypedQuery<T> all() {
+    TypedQuery<T> all() {
         Validate.notNull(queryBuilder, "Query builder must not be null");
         return queryBuilder.all();
     }
 
     public void setResultClass(Class<T> resultClass) {
         Validate.notNull(resultClass, "Result class must not be null");
-        queryBuilder.withResultClass(resultClass);
+        queryBuilder.setResultClass(resultClass);
     }
 
-    public TypedQuery<Long> count(RopertyKey ropertyKey) {
+    TypedQuery<Long> count(RopertyKey ropertyKey) {
         Validate.notNull(ropertyKey, "Roperty key must not be null");
         Validate.notNull(queryBuilder, "Query builder must not be null");
         return queryBuilder.count(ropertyKey);
+    }
+
+    TypedQuery<T> likeliness(LikeCriterion... criteria) {
+        Validate.notEmpty(criteria, "Like criteria must not be empty");
+        return queryBuilder.likeliness(criteria);
     }
 }

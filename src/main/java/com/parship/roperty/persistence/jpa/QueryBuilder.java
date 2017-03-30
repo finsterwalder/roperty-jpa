@@ -19,12 +19,12 @@ public class QueryBuilder<X> {
 
     private EntityManager entityManager;
 
-    public <Y> TypedQuery<X> equality(EqualsCriterion... equalsCriteria) {
+    TypedQuery<X> equality(EqualsCriterion<?>... equalsCriteria) {
         Validate.notNull(entityManager, "Entity manager must not be null");
         Validate.notNull(resultClass, "Result class must not be null");
         Validate.notEmpty(equalsCriteria, "At least one equals criterion should be given");
 
-        for (EqualsCriterion<Y> equalsCriterion : equalsCriteria) {
+        for (EqualsCriterion<?> equalsCriterion : equalsCriteria) {
             Validate.notEmpty(equalsCriterion.getAttributeName(), "Attribute name of equals criterion must no be blank");
             Validate.notNull(equalsCriterion.getComparison(), "A comparison value must exist. It is currently null");
         }
@@ -37,19 +37,18 @@ public class QueryBuilder<X> {
         int numRestrictions = equalsCriteria.length;
         Predicate[] restrictions = new Predicate[numRestrictions];
         for (int i = 0; i < numRestrictions; i++) {
-            EqualsCriterion<Y> equalsCriterion = equalsCriteria[i];
+            EqualsCriterion<?> equalsCriterion = equalsCriteria[i];
             String attributeName = equalsCriterion.getAttributeName();
             SingularAttribute<? super X, ?> singularAttribute = entityType.getSingularAttribute(attributeName);
             Path<?> path = root.get(singularAttribute);
-            Y comparison = equalsCriterion.getComparison();
-            Predicate restriction = criteriaBuilder.equal(path, comparison);
+            Predicate restriction = criteriaBuilder.equal(path, equalsCriterion.getComparison());
             restrictions[i] = restriction;
         }
         query.where(criteriaBuilder.and(restrictions));
         return entityManager.createQuery(query);
     }
 
-    public TypedQuery<X> all() {
+    TypedQuery<X> all() {
         Validate.notNull(entityManager, "Entity manager must not be null");
         Validate.notNull(resultClass, "Result class must not be null");
 
@@ -62,19 +61,17 @@ public class QueryBuilder<X> {
         return entityManager.createQuery(query);
     }
 
-    public QueryBuilder<X> withResultClass(Class<X> resultClass) {
+    void setResultClass(Class<X> resultClass) {
         Validate.notNull(resultClass, "Result class must not be null");
         this.resultClass = resultClass;
-        return this;
     }
 
-    public QueryBuilder<X> withEntityManager(EntityManager entityManager) {
+    void withEntityManager(EntityManager entityManager) {
         Validate.notNull(entityManager, "Entity manager must not be null");
         this.entityManager = entityManager;
-        return this;
     }
 
-    public TypedQuery<Long> count(RopertyKey ropertyKey) {
+    TypedQuery<Long> count(RopertyKey ropertyKey) {
         Validate.notNull(entityManager, "Entity manager must not be null");
         Validate.notNull(resultClass, "Result class must not be null");
 
@@ -87,6 +84,36 @@ public class QueryBuilder<X> {
         query.select(criteriaBuilder.count(root));
         query.where(criteriaBuilder.equal(root.get(entityType.getSingularAttribute("key")), ropertyKey));
 
+        return entityManager.createQuery(query);
+    }
+
+    TypedQuery<X> likeliness(LikeCriterion... criteria) {
+        Validate.notNull(entityManager, "Entity manager must not be null");
+        Validate.notNull(resultClass, "Result class must not be null");
+        Validate.notEmpty(criteria, "At least one like criterion should be given");
+
+        for (LikeCriterion criterion : criteria) {
+            Validate.notEmpty(criterion.getAttributeName(), "Attribute name of equals criterion must no be blank");
+            Validate.notNull(criterion.getExpression(), "An expression must exist. It is currently null");
+        }
+
+        Metamodel metamodel = entityManager.getMetamodel();
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<X> query = criteriaBuilder.createQuery(resultClass);
+        EntityType<X> entityType = metamodel.entity(resultClass);
+        Root<X> root = query.from(entityType);
+        int numRestrictions = criteria.length;
+        Predicate[] restrictions = new Predicate[numRestrictions];
+        for (int i = 0; i < numRestrictions; i++) {
+            LikeCriterion criterion = criteria[i];
+            String attributeName = criterion.getAttributeName();
+            SingularAttribute<? super X, String> singularAttribute = entityType.getSingularAttribute(attributeName, String.class);
+            Path<String> path = root.get(singularAttribute);
+            String expression = criterion.getExpression();
+            Predicate restriction = criteriaBuilder.like(criteriaBuilder.lower(path), expression.toLowerCase());
+            restrictions[i] = restriction;
+        }
+        query.where(criteriaBuilder.and(restrictions));
         return entityManager.createQuery(query);
     }
 }

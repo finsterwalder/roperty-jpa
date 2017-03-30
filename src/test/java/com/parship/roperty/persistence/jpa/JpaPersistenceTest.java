@@ -5,7 +5,6 @@ import com.parship.roperty.DomainSpecificValueFactory;
 import com.parship.roperty.KeyValues;
 import com.parship.roperty.KeyValuesFactory;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -14,11 +13,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -72,20 +74,20 @@ public class JpaPersistenceTest {
     @Test
     public void loadShouldReturnNullIfNoRopertyKeyFound() {
         KeyValues keyValues = jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
-        Assert.assertThat(keyValues, Matchers.nullValue());
+        assertThat(keyValues, Matchers.nullValue());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void loadShouldFailNullIfNoRopertyValuesFound() {
         when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
         KeyValues keyValues = jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
-        Assert.assertThat(keyValues, Matchers.nullValue());
+        assertThat(keyValues, Matchers.nullValue());
     }
 
     @Test(expected = NullPointerException.class)
     public void failIfRopertyValuePatternIsNull() throws Exception {
         when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(singletonList(ropertyValue));
 
         jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
     }
@@ -93,7 +95,7 @@ public class JpaPersistenceTest {
     @Test(expected = NullPointerException.class)
     public void failIfKeyValuesIsNull() throws Exception {
         when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(singletonList(ropertyValue));
         when(ropertyValue.getPattern()).thenReturn("pattern");
 
         jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
@@ -102,7 +104,7 @@ public class JpaPersistenceTest {
     @Test(expected = NullPointerException.class)
     public void failIfRopertyValueHasNoKey() throws Exception {
         when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(singletonList(ropertyValue));
         when(ropertyValue.getPattern()).thenReturn("pattern");
         when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
 
@@ -112,7 +114,7 @@ public class JpaPersistenceTest {
     @Test
     public void loadShouldReturnKeyValues() throws Exception {
         when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
-        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(singletonList(ropertyValue));
         when(ropertyValue.getPattern()).thenReturn(PATTERN);
         when(ropertyValue.getKey()).thenReturn(ropertyKey);
         when(ropertyValue.getChangeSet()).thenReturn(CHANGE_SET);
@@ -132,18 +134,18 @@ public class JpaPersistenceTest {
         verify(ropertyValue).getChangeSet();
         verify(keyValues).putWithChangeSet(CHANGE_SET, value, DOMAIN_KEY_PART_1, DOMAIN_KEY_PART_2);
         verify(keyValues).setDescription(DESCRIPTION);
-        Assert.assertThat(result, Matchers.is(keyValues));
+        assertThat(result, Matchers.is(keyValues));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void failIfLoadAllAndNotKeyGiven() throws Exception {
-        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(Collections.singletonList(ropertyKey));
+        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(singletonList(ropertyKey));
         jpaPersistence.loadAll(keyValuesFactory, domainSpecificValueFactory);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void failIfNoValuesFound() throws Exception {
-        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(Collections.singletonList(ropertyKey));
+        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(singletonList(ropertyKey));
         when(ropertyKey.getId()).thenReturn(KEY);
 
         jpaPersistence.loadAll(keyValuesFactory, domainSpecificValueFactory);
@@ -151,9 +153,9 @@ public class JpaPersistenceTest {
 
     @Test
     public void loadAll() throws Exception {
-        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(Collections.singletonList(ropertyKey));
+        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(singletonList(ropertyKey));
         when(ropertyKey.getId()).thenReturn(KEY);
-        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(Collections.singletonList(ropertyValue));
+        when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(singletonList(ropertyValue));
         when(keyValuesFactory.create(domainSpecificValueFactory)).thenReturn(keyValues);
         when(ropertyValue.getPattern()).thenReturn(PATTERN);
         when(ropertyValue.getKey()).thenReturn(ropertyKey);
@@ -175,8 +177,8 @@ public class JpaPersistenceTest {
         verify(ropertyValue).getValue();
         verify(keyValues).putWithChangeSet(CHANGE_SET, value, DOMAIN_KEY_PART_1, DOMAIN_KEY_PART_2);
         verify(keyValues).setDescription(DESCRIPTION);
-        Assert.assertThat(result.get(KEY), Matchers.is(keyValues));
-        Assert.assertThat(result.size(), Matchers.is(1));
+        assertThat(result.get(KEY), Matchers.is(keyValues));
+        assertThat(result.size(), Matchers.is(1));
     }
 
     @Test
@@ -185,7 +187,7 @@ public class JpaPersistenceTest {
 
         Map<String, KeyValues> result = jpaPersistence.reload(keyValuesMap, keyValuesFactory, domainSpecificValueFactory);
 
-        Assert.assertThat(result.isEmpty(), Matchers.is(true));
+        assertThat(result.isEmpty(), Matchers.is(true));
     }
 
     @Test
@@ -197,7 +199,7 @@ public class JpaPersistenceTest {
 
         verify(ropertyKeyDAO).loadRopertyKey(KEY);
 
-        Assert.assertThat(result.isEmpty(), Matchers.is(true));
+        assertThat(result.isEmpty(), Matchers.is(true));
     }
 
     @Test
@@ -228,9 +230,9 @@ public class JpaPersistenceTest {
         verify(ropertyKey).getId();
         verify(keyValues).putWithChangeSet(CHANGE_SET, value, DOMAIN_KEY_PART_1, DOMAIN_KEY_PART_2);
         verify(keyValues).setDescription(DESCRIPTION);
-        Assert.assertThat(result.get(KEY), Matchers.is(keyValues));
-        Assert.assertThat(result.get(KEY), Matchers.not(Matchers.is(oldKeyValues)));
-        Assert.assertThat(result.size(), Matchers.is(1));
+        assertThat(result.get(KEY), Matchers.is(keyValues));
+        assertThat(result.get(KEY), Matchers.not(Matchers.is(oldKeyValues)));
+        assertThat(result.size(), Matchers.is(1));
     }
 
     @Test(expected = RopertyPersistenceException.class)
@@ -273,6 +275,16 @@ public class JpaPersistenceTest {
 
         verifyNoMoreInteractions(transactionManager);
     }
+
+    @Test(expected=RopertyPersistenceException.class)
+    public void failIfNullDomainSpecificValues() {
+        when(keyValues.getDomainSpecificValues()).thenReturn(null);
+        when(domainSpecificValue.getValue()).thenReturn(value);
+        when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+
+        jpaPersistence.store(KEY, keyValues, CHANGE_SET);
+    }
+
 
     @Test
     public void storeWithNullChangeSetShouldPersistValues() {
@@ -461,6 +473,14 @@ public class JpaPersistenceTest {
         verify(domainSpecificValue).getValue();
 
         verifyNoMoreInteractions(transactionManager);
+    }
+
+    @Test
+    public void returnsAllKeys() {
+        when(ropertyKey.getId()).thenReturn(KEY);
+        when(ropertyKeyDAO.loadAllRopertyKeys()).thenReturn(singletonList(ropertyKey));
+        List<String> allKeys = jpaPersistence.getAllKeys();
+        assertThat(allKeys, contains(KEY));
     }
 
 }

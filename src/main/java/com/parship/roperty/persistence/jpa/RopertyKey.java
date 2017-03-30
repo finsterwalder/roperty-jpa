@@ -7,7 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="roperty_key")
+@Table(name = "roperty_key")
 public class RopertyKey {
 
     @Id
