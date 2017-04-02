@@ -12,3 +12,5 @@
 hs_err_pid*
 roperty-persistence.iml
 target/
+
+*.iml
