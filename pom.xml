@@ -24,8 +24,8 @@
     </licenses>
 
     <scm>
-        <url>git@github.com:dheid/roperty-jpa.git</url>
-        <connection>scm:git:git@github.com:dheid/roperty-jpa.git</connection>
+        <url>https://github.com/dheid/roperty-jpa</url>
+        <connection>scm:git:git://github.com/dheid/roperty-jpa.git</connection>
         <developerConnection>scm:git:git@github.com:dheid/roperty-jpa.git</developerConnection>
     </scm>
 
