@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.persistence.EntityManager;
@@ -128,7 +127,7 @@ public class QueryBuilderTest {
         verify(root).get(singularAttribute);
         verify(criteriaBuilder).like(stringPath, EXPRESSION);
         verify(criteriaBuilder).lower(stringPath);
-        verify(criteriaBuilder).and(Mockito.any(Predicate[].class));
+        verify(criteriaBuilder).and(restriction);
         verify(criteriaQuery).where(predicate);
         verifyMocks();
 

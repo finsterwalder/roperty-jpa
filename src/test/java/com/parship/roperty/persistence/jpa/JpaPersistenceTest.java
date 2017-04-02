@@ -96,7 +96,6 @@ public class JpaPersistenceTest {
     public void failIfKeyValuesIsNull() throws Exception {
         when(ropertyKeyDAO.loadRopertyKey(KEY)).thenReturn(ropertyKey);
         when(ropertyValueDAO.loadRopertyValues(ropertyKey)).thenReturn(singletonList(ropertyValue));
-        when(ropertyValue.getPattern()).thenReturn("pattern");
 
         jpaPersistence.load(KEY, keyValuesFactory, domainSpecificValueFactory);
     }
@@ -260,6 +259,7 @@ public class JpaPersistenceTest {
         when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
         when(domainSpecificValue.getValue()).thenReturn(value);
         when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+        when(domainSpecificValue.changeSetIs(CHANGE_SET)).thenReturn(true);
 
         jpaPersistence.store(KEY, keyValues, CHANGE_SET);
 
@@ -279,9 +279,6 @@ public class JpaPersistenceTest {
     @Test(expected=RopertyPersistenceException.class)
     public void failIfNullDomainSpecificValues() {
         when(keyValues.getDomainSpecificValues()).thenReturn(null);
-        when(domainSpecificValue.getValue()).thenReturn(value);
-        when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
-
         jpaPersistence.store(KEY, keyValues, CHANGE_SET);
     }
 
@@ -291,6 +288,7 @@ public class JpaPersistenceTest {
         when(keyValues.getDomainSpecificValues()).thenReturn(new HashSet<>(Arrays.asList(domainSpecificValue)));
         when(domainSpecificValue.getValue()).thenReturn(value);
         when(domainSpecificValue.getPatternStr()).thenReturn(PATTERN);
+        when(domainSpecificValue.changeSetIs(null)).thenReturn(true);
 
         jpaPersistence.store(KEY, keyValues, null);
 
