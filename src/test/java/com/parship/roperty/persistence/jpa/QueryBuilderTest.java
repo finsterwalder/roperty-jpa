@@ -1,11 +1,11 @@
 package com.parship.roperty.persistence.jpa;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -17,14 +17,14 @@ import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class QueryBuilderTest {
 
     private static final String ATTRIBUTE_NAME = "attributeName";
@@ -39,16 +39,16 @@ public class QueryBuilderTest {
     @Mock
     private LikeCriterion likeCriterion;
 
-    @Mock
+    @Mock(lenient = true)
     private EntityManager entityManager;
 
-    @Mock
+    @Mock(lenient = true)
     private CriteriaBuilder criteriaBuilder;
 
-    @Mock
+    @Mock(lenient = true)
     private Metamodel metamodel;
 
-    @Mock
+    @Mock(lenient = true)
     private CriteriaQuery<Long> criteriaQuery;
 
     @Mock
@@ -75,7 +75,7 @@ public class QueryBuilderTest {
     @Mock
     private Predicate predicate;
 
-    @Before
+    @BeforeEach
     public void prepareMocks() {
         when(entityManager.getMetamodel()).thenReturn(metamodel);
         when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
@@ -134,19 +134,19 @@ public class QueryBuilderTest {
         assertThat(typedQuery, is(this.typedQuery));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void failsIfNoCriterionGiven() {
-        queryBuilder.equality();
+        assertThrows(NullPointerException.class, () -> queryBuilder.equality());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void failsIfAllAndNoResultClassGiven() {
-        queryBuilder.all();
+        assertThrows(NullPointerException.class, () -> queryBuilder.all());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void failsIfEqualityAndNoResultClassGiven() {
-        queryBuilder.equality(new EqualsCriterion());
+        assertThrows(NullPointerException.class, () -> queryBuilder.equality(new EqualsCriterion()));
     }
 
     @Test

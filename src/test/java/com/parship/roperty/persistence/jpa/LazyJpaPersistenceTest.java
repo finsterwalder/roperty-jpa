@@ -1,22 +1,22 @@
 package com.parship.roperty.persistence.jpa;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verifyNoInteractions;
+
 import com.parship.roperty.DomainSpecificValueFactory;
 import com.parship.roperty.KeyValues;
 import com.parship.roperty.KeyValuesFactory;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.verifyZeroInteractions;
-
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LazyJpaPersistenceTest {
 
     public static final String KEY = "key";
@@ -37,13 +37,13 @@ public class LazyJpaPersistenceTest {
     public void loadAllShouldReturnEmptyMap() {
         Map<String, KeyValues> result = lazyJpaPersistence.loadAll(keyValuesFactory, domainSpecificValueFactory);
         assertThat(result.isEmpty(), is(true));
-        verifyZeroInteractions(keyValuesFactory, domainSpecificValueFactory);
+        verifyNoInteractions(keyValuesFactory, domainSpecificValueFactory);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void loadAllResultShouldBeReadOnly() {
         Map<String, KeyValues> result = lazyJpaPersistence.loadAll(keyValuesFactory, domainSpecificValueFactory);
-        result.put(KEY, keyValues);
+        assertThrows(UnsupportedOperationException.class, () -> result.put(KEY, keyValues));
     }
 
     @Test
@@ -54,14 +54,14 @@ public class LazyJpaPersistenceTest {
         assertThat(result.isEmpty(), is(true));
         assertThat(keyValuesMap.size(), is(1));
         assertThat(keyValuesMap.get(KEY), is(keyValues));
-        verifyZeroInteractions(keyValuesFactory, domainSpecificValueFactory);
+        verifyNoInteractions(keyValuesFactory, domainSpecificValueFactory);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void reloadResultShouldBeReadOnly() {
         Map<String, KeyValues> keyValuesMap = new HashMap<>(0);
         Map<String, KeyValues> result = lazyJpaPersistence.reload(keyValuesMap, keyValuesFactory, domainSpecificValueFactory);
-        result.put(KEY, keyValues);
+        assertThrows(UnsupportedOperationException.class, () -> result.put(KEY, keyValues));
     }
 
 }

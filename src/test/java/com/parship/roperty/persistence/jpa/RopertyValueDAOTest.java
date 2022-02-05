@@ -1,27 +1,27 @@
 package com.parship.roperty.persistence.jpa;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.Arrays;
-import java.util.List;
-
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.util.Arrays;
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
 public class RopertyValueDAOTest {
 
     private static final String PATTERN = "pattern";
@@ -48,16 +48,16 @@ public class RopertyValueDAOTest {
     @Mock
     private Object value;
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void failIfNoEntityManagerOnLoadingRopertyValuesForKey() {
-        ropertyValueDAO.loadRopertyValues(ropertyKey);
+        assertThrows(NullPointerException.class, () -> ropertyValueDAO.loadRopertyValues(ropertyKey));
     }
 
-    @Test(expected = RopertyPersistenceException.class)
+    @Test
     public void failIfTypedQueryIsNullOnLoadingRopertyValuesForKey() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
 
-        ropertyValueDAO.loadRopertyValues(ropertyKey);
+        assertThrows(RopertyPersistenceException.class, () -> ropertyValueDAO.loadRopertyValues(ropertyKey));
     }
 
     @Test
@@ -91,16 +91,16 @@ public class RopertyValueDAOTest {
         assertThat(ropertyValues, contains(ropertyValue));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void failIfNoEntityManagerOnLoadingSingleRopertyValue() {
-        ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET);
+        assertThrows(NullPointerException.class, () -> ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET));
     }
 
-    @Test(expected = RopertyPersistenceException.class)
+    @Test
     public void failIfTypedQueryIsNullOnLoadingSingleRopertyValue() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
 
-        ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET);
+        assertThrows(RopertyPersistenceException.class, () -> ropertyValueDAO.loadRopertyValue(ropertyKey, PATTERN, CHANGE_SET));
     }
 
     @Test
@@ -132,25 +132,25 @@ public class RopertyValueDAOTest {
         assertThat(result, is(ropertyValue));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void failIfCountAndNoEntityManager() {
-        ropertyValueDAO.getNumberOfValues(ropertyKey);
+        assertThrows(NullPointerException.class, () -> ropertyValueDAO.getNumberOfValues(ropertyKey));
     }
 
-    @Test(expected = RopertyPersistenceException.class)
+    @Test
     public void failIfNoTypedQueryOnCount() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
 
-        ropertyValueDAO.getNumberOfValues(ropertyKey);
+        assertThrows(RopertyPersistenceException.class, () -> ropertyValueDAO.getNumberOfValues(ropertyKey));
     }
 
-    @Test(expected = RopertyPersistenceException.class)
+    @Test
     public void failIfNoResultOnCount() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
         TypedQuery<Long> countQuery = mock(TypedQuery.class);
         when(queryBuilderDelegate.count(ropertyKey)).thenReturn(countQuery);
 
-        ropertyValueDAO.getNumberOfValues(ropertyKey);
+        assertThrows(RopertyPersistenceException.class, () -> ropertyValueDAO.getNumberOfValues(ropertyKey));
     }
 
     @Test

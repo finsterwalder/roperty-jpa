@@ -1,29 +1,29 @@
 package com.parship.roperty.persistence.jpa;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.List;
-
 import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
 public class RopertyKeyDAOTest {
 
     private static final String KEY = "key";
@@ -74,16 +74,16 @@ public class RopertyKeyDAOTest {
         assertThat(result, is(ropertyKey));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void failIfMissingEntityManager() {
-        ropertyKeyDAO.loadAllRopertyKeys();
+        assertThrows(NullPointerException.class, () -> ropertyKeyDAO.loadAllRopertyKeys());
     }
 
-    @Test(expected = RopertyPersistenceException.class)
+    @Test
     public void failIfTypedQueryIsNullOnLoadingAllRopertyKeys() {
         when(queryBuilderDelegate.createEntityManager()).thenReturn(entityManager);
 
-        ropertyKeyDAO.loadAllRopertyKeys();
+        assertThrows(RopertyPersistenceException.class, () -> ropertyKeyDAO.loadAllRopertyKeys());
     }
 
     @Test
